@@ -1,0 +1,12 @@
+.pio/
+.vscode/
+__pycache__/
+*.local.*
+credentials*
+original-*.bin
+.env
+.env.*
+*.key
+*.pem
+device-screen.png
+.DS_Store
