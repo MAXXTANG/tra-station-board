@@ -1,6 +1,6 @@
 {
   "board": "LILYGO T-Display-S3 Touch 1.9",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "offsets": {
     "bootloader.bin": "0x0",
     "partitions.bin": "0x8000",
@@ -11,6 +11,6 @@
     "partitions.bin": "bd0f7954aca2ef7d925ee21aaa1f3dc8822d1d6ce5cbbd26a135e5886bfff6ce",
     "boot_app0.bin": "f94c5d786a7a8fab06ac5d10e33bf37711a6697636dc037559ea19cc410a17f0",
     "bootloader.bin": "1051ac3e564bb9368a635af94a219d01c6263dc7a89a5e132bd01fef925026a2",
-    "tra-board-app.bin": "4d08e67f31b0331cd1c17bed6b3c10c9e156edf8dd752480b1d5d8b4d21533aa"
+    "tra-board-app.bin": "3e5f03160836d041e14c997573ae2816c8e873088e9f9c2c3ff1953b7d444e0f"
   }
 }

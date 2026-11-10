@@ -13,8 +13,9 @@
 #include "stations.h"
 #include "tdx_ca.h"
 #include "portal.h"
+#include "display_orientation.h"
 
-struct Config {String ssid,password,station="7210",client,secret; bool flip=false,ns=true,automatic=false; uint32_t interval=120;} cfg;
+struct Config {String ssid,password,station="7210",client,secret; bool flip=false,ns=true,automatic=false,rotate180=false; uint32_t interval=120;} cfg;
 TFT_eSPI tft; TFT_eSprite frame(&tft);
 Preferences prefs;WebServer server(80);DNSServer dns;
 SemaphoreHandle_t modelMutex;
@@ -51,6 +52,7 @@ void loadConfig(){
  prefs.begin("tra-board",false);DynamicJsonDocument d(2048);deserializeJson(d,prefs.getString("config","{}"));
  cfg.ssid=d["ssid"] | "";cfg.password=d["password"] | "";cfg.station=d["station"] | "7210";
  cfg.client=d["client"] | "";cfg.secret=d["secret"] | "";cfg.flip=d["flip"] | false;cfg.ns=d["ns"] | true;cfg.automatic=d["auto"] | false;cfg.interval=d["interval"] | 120;
+ cfg.rotate180=(d["rotation"] | 0)==180;
  bool valid=false;for(auto&s:STATIONS)if(cfg.station==s.id)valid=true;if(!valid)cfg.station="7210";
  cfg.interval=constrain(cfg.interval,120U,3600U);
 }
@@ -61,7 +63,7 @@ void setupWeb(){
   server.sendContent("<input type='hidden' name='csrf' value='"+csrf+"'><label>Wi-Fi 名稱</label><input name='ssid' required maxlength='32' value='"+htmlEscape(cfg.ssid)+"' autocomplete='off'>");
   server.sendContent(PORTAL_MIDDLE);
   String chunk;chunk.reserve(1600);for(auto&s:STATIONS){chunk+="<option value='"+String(s.id)+"' data-region='"+htmlEscape(s.region)+"'"+(cfg.station==s.id?" selected":"")+">"+htmlEscape(s.name)+" · "+s.id+"</option>";if(chunk.length()>1400){server.sendContent(chunk);chunk="";}}server.sendContent(chunk);
-  server.sendContent("</select><script type='application/json' id='current'>{\"labels\":\""+String(cfg.ns?"ns":"cw")+"\",\"flip\":\""+String(cfg.flip?"1":"0")+"\",\"interval\":\""+String(cfg.interval)+"\",\"auto\":"+String(cfg.automatic?"true":"false")+"}</script>");
+  server.sendContent("</select><script type='application/json' id='current'>{\"labels\":\""+String(cfg.ns?"ns":"cw")+"\",\"flip\":\""+String(cfg.flip?"1":"0")+"\",\"interval\":\""+String(cfg.interval)+"\",\"rotation\":\""+String(cfg.rotate180?180:0)+"\",\"auto\":"+String(cfg.automatic?"true":"false")+"}</script>");
   server.sendContent(PORTAL_TAIL);server.sendContent("");
  });
  server.on("/save",HTTP_POST,[]{
@@ -72,11 +74,13 @@ void setupWeb(){
   if(ssid.length()==0||ssid.length()>32||pw.length()>63||(!pw.isEmpty()&&pw.length()<8)||!valid||client.length()>160||secret.length()>200||(!client.isEmpty()&&client!=cfg.client&&secret.isEmpty())){server.send(400,"text/plain; charset=utf-8","請檢查 Wi-Fi 名稱、密碼（8–63 字元）、車站與 TDX 金鑰。變更 Client ID 時需同步輸入 Secret。");return;}
   if(!isOpen&&pw.isEmpty()&&cfg.password.isEmpty()){server.send(400,"text/plain; charset=utf-8","請輸入 Wi-Fi 密碼，或勾選無密碼 Wi-Fi。");return;}
   if(!isOpen&&pw.isEmpty()&&ssid!=cfg.ssid){server.send(400,"text/plain; charset=utf-8","切換 Wi-Fi 時請輸入新密碼。");return;}
+  if(server.hasArg("rotation")&&server.arg("rotation")!="0"&&server.arg("rotation")!="180"){server.send(400,"text/plain; charset=utf-8","螢幕方向僅支援正常或旋轉 180 度。");return;}
   Config nextCfg=cfg;
+  if(server.hasArg("rotation"))nextCfg.rotate180=server.arg("rotation")=="180";
   nextCfg.ssid=ssid;if(isOpen)nextCfg.password="";else if(!pw.isEmpty())nextCfg.password=pw;
   nextCfg.station=station;if(!client.isEmpty())nextCfg.client=client;if(!secret.isEmpty())nextCfg.secret=secret;
   nextCfg.ns=server.arg("labels")!="cw";nextCfg.flip=server.arg("flip")=="1";nextCfg.automatic=server.hasArg("auto");nextCfg.interval=constrain((uint32_t)server.arg("interval").toInt(),120U,3600U);
-  DynamicJsonDocument d(2048);d["ssid"]=nextCfg.ssid;d["password"]=nextCfg.password;d["station"]=nextCfg.station;d["client"]=nextCfg.client;d["secret"]=nextCfg.secret;d["ns"]=nextCfg.ns;d["flip"]=nextCfg.flip;d["auto"]=nextCfg.automatic;d["interval"]=nextCfg.interval;String value;serializeJson(d,value);
+  DynamicJsonDocument d(2048);d["ssid"]=nextCfg.ssid;d["password"]=nextCfg.password;d["station"]=nextCfg.station;d["client"]=nextCfg.client;d["secret"]=nextCfg.secret;d["ns"]=nextCfg.ns;d["flip"]=nextCfg.flip;d["auto"]=nextCfg.automatic;d["interval"]=nextCfg.interval;d["rotation"]=nextCfg.rotate180?180:0;String value;serializeJson(d,value);
   if(!prefs.putString("config",value)){server.send(500,"text/plain","Storage failed");return;}
   server.send(200,"text/html; charset=utf-8","<meta name='viewport' content='width=device-width'><h2>已儲存，正在重新連線</h2><p>請查看看板。若 30 秒內無法連線，設定熱點會重新開啟。</p>");rebootAt=millis()+1500;
  });
@@ -137,8 +141,7 @@ bool touchPoint(int&x,int&y){
  if(Wire.requestFrom((int)touchAddress,7)!=7)return false;for(int i=0;i<7;i++)b[i]=Wire.read();
  int px,py;if(touchAddress==0x1a){Wire.beginTransmission(touchAddress);Wire.write(0xd0);Wire.write(0);Wire.write(0xab);Wire.endTransmission();if(!(b[5]&15)||(b[0]&15)!=6)return false;px=(b[1]<<4)|(b[3]>>4);py=(b[2]<<4)|(b[3]&15);}
  else{if(!(b[2]&15)||(b[3]>>6)==1)return false;px=((b[3]&15)<<8)|b[4];py=((b[5]&15)<<8)|b[6];}
- // ST7789 landscape rotation 1: raw portrait (x,y) -> (y,169-x).
- x=py;y=169-px;if(x<0||x>=320||y<0||y>=170)return false;
+ if(!display::mapTouch(px,py,cfg.rotate180,x,y))return false;
  Serial.printf("Touch x=%d y=%d\n",x,y);return true;
 }
 void draw(){
@@ -173,9 +176,9 @@ void draw(){
 }
 void setup(){
  pinMode(15,OUTPUT);digitalWrite(15,HIGH);pinMode(0,INPUT_PULLUP);pinMode(14,INPUT_PULLUP);
- Serial.begin(115200);delay(200);Serial.println("TRA Board 0.1.1 / LILYGO T-Display-S3 Touch");
+ Serial.begin(115200);delay(200);Serial.println("TRA Board 0.1.2 / LILYGO T-Display-S3 Touch");
  modelMutex=xSemaphoreCreateMutex();loadConfig();direction=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
- tft.init();tft.setRotation(1);tft.fillScreen(BG);pinMode(38,OUTPUT);digitalWrite(38,HIGH);frame.setColorDepth(16);frame.setAttribute(PSRAM_ENABLE,true);
+ tft.init();tft.setRotation(display::landscapeRotation(cfg.rotate180));tft.fillScreen(BG);pinMode(38,OUTPUT);digitalWrite(38,HIGH);frame.setColorDepth(16);frame.setAttribute(PSRAM_ENABLE,true);
  if(!frame.createSprite(320,170)){Serial.println("Framebuffer allocation failed");while(true)delay(1000);}
  setupTouch(); // This release caches timetables in RAM and preserves the original filesystem.
  uint64_t mac=ESP.getEfuseMac();char suffix[7];snprintf(suffix,sizeof(suffix),"%06X",(unsigned)(mac&0xffffff));apName="TRA-"+String(suffix);
@@ -186,7 +189,7 @@ void setup(){
 void loop(){
  if(Serial.available()) {
   char cmd=Serial.read();
-  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive);
+  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d version=0.1.2\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0);
   if(cmd=='b'){direction=1-direction;page=0;draw();Serial.printf("DIRECTION %d\n",direction);}
   if(cmd=='p'){beginPortal();draw();}
   if(cmd=='s'){
