@@ -12,4 +12,4 @@ python -m esptool --chip esp32s3 --port /dev/cu.usbmodem101 --baud 921600 write_
 
 全新板子或有意重新建立相同分割表時，可依 `manifest.json` 的 offset 寫入四個 bin；此操作會改 bootloader、分割表及 OTA metadata，應先備份既有內容。初版不格式化或寫入原有檔案系統。
 
-Wi-Fi 與 TDX 金鑰透過板上配網頁輸入；韌體不包含個人密碼。
+0.2.0 使用免費 ODS，不需要 TDX 金鑰；Wi-Fi 透過板上配網頁輸入，韌體不包含個人密碼。

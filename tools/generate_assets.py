@@ -36,7 +36,7 @@ pem=''.join(selected)
 assert pem
 # Verify that these roots really validate the live endpoint before embedding them.
 verify=ssl.create_default_context(cadata=pem)
-with verify.wrap_socket(socket.socket(),server_hostname='tdx.transportdata.tw') as s:
- s.settimeout(15);s.connect(('tdx.transportdata.tw',443));print('TDX TLS roots verified')
-(p/'include/tdx_ca.h').write_text('#pragma once\nstatic const char TDX_CA[] = R"CERT('+pem+')CERT";\n')
+with verify.wrap_socket(socket.socket(),server_hostname='ods.railway.gov.tw') as s:
+ s.settimeout(15);s.connect(('ods.railway.gov.tw',443));print('ODS TLS roots verified')
+(p/'include/ods_ca.h').write_text('#pragma once\nstatic const char ODS_CA[] = R"CERT('+pem+')CERT";\n')
 print('Generated',len(stations),'stations;',len(codes),'glyphs')

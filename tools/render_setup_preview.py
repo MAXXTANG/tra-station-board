@@ -13,7 +13,7 @@ options = ''.join(
     + (' selected' if s['id'] == '7210' else '')
     + f'>{html.escape(s["name"])} · {s["id"]}</option>' for s in stations
 )
-current = {'labels': 'ns', 'flip': '0', 'interval': '120', 'rotation': '0', 'auto': False}
+current = {'labels': 'ns', 'flip': '0', 'rotation': '0', 'auto': False}
 page = (parts['PORTAL_HEAD']
         + '<label>Wi-Fi 名稱</label><input name="ssid" required maxlength="32">'
         + parts['PORTAL_MIDDLE'] + options + '</select>'
