@@ -6,6 +6,8 @@
 
 ![四欄介面預覽，所有班次均為示範資料](board-preview.png)
 
+[查看 12 張分類畫面截圖](docs/screenshots/README.md)（實機、選站介面、系統提示、旋轉示意）。
+
 ## 配網與選站
 
 1. 開機後，手機連接螢幕顯示的 `TRA-xxxxxx` Wi-Fi，密碼也顯示在螢幕上。
@@ -41,7 +43,7 @@ Wi-Fi、車站、方向與螢幕旋轉會記憶在 NVS。修改既有設定時�
 
 [看板互動預覽](board-preview.html) 提供兩方向各五頁示範資料，也能旋轉 180°；[設定頁預覽](setup-preview.html) 可查看配網選單。下載後用瀏覽器開啟，預覽不會修改實機。
 
-## 資料與五分鐘更新
+## 資料與兩分鐘更新
 
 - 正式資料來源：[臺鐵鐵路時刻表](https://data.gov.tw/dataset/6138)，官方標示免費、政府資料開放授權條款第 1 版。
 - 檔案清單：`https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/railway_schedule/JSON/list`。
