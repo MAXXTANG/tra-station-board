@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include "rail_model.h"
+#include "ods_stream.h"
 #include "stations.h"
 
 struct Input {
@@ -15,12 +16,18 @@ const char *lookup(const char *id) {
 }
 bool parse(std::istream &stream,const std::string &station,const std::string &date,
            std::vector<rail::Train> &out) {
-    Input input{stream};DynamicJsonDocument doc(98304),filter(1024);
+    Input input{stream};
+#ifdef TEST_COMPACT_ODS
+    std::string source;
+    return rail::parseOdsCompact(input,station,date,lookup,out,source);
+#else
+    DynamicJsonDocument doc(98304),filter(1024);
     filter["Train"]=true;filter["LineDir"]=true;filter["CarClass"]=true;
     JsonObject stop=filter["TimeInfos"].to<JsonArray>().createNestedObject();
     for(const char *field:{"Station","Order","ARRTime","DEPTime"})stop[field]=true;
     std::string source;
     return rail::parseOdsStream(input,doc,filter.as<JsonVariantConst>(),station,date,lookup,out,source);
+#endif
 }
 bool parse(const std::string &s,std::vector<rail::Train> &out) {
     std::istringstream stream(s);return parse(stream,"7210","2026-11-11",out);

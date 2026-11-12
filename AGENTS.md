@@ -1,8 +1,8 @@
 # TRA Station Board
 
-- Hardware: LILYGO T-Display-S3 Touch 1.9 inch, 16 MB Flash / 8 MB OPI PSRAM. Do not apply Waveshare pin definitions.
+- Hardware profiles: LILYGO T-Display-S3 Touch 1.9 inch (16 MB Flash / 8 MB OPI PSRAM), CYD ESP32-2432S028R (4 MB, no PSRAM; ILI9341 or ST7789 variant). Never apply a profile to a USB device whose MCU does not match. An ESP32-S3 with 8 MB Flash is not identified as a standard CYD.
 - Station-name taps open the on-device recent/region/station picker; keep Wi-Fi setup on the long-press GPIO14 action. Preserve saved Wi-Fi and orientation when selecting another station.
-- Keep the 320 x 170 landscape layout: table at top, clock at bottom left, station and direction controls on the bottom row. Update touch coordinates and `tools/render_preview.py` together.
+- Keep the landscape layout: 320x170 / 3 rows on LILYGO, 320x240 / 5 rows on CYD. Table at top, clock at bottom left, station and direction controls on the bottom row. CYD uses a 15 KiB render band and calibrated XPT2046 coordinates. Update layout and previews together.
 - `platformio.ini` pins the toolchain and dependencies. Build with `pio run`; run `test/test_model.cpp` for data model changes.
 - Credentials are configured on the device. Never commit Wi-Fi/API credentials, original Flash backups, device screenshots with setup passwords, or build caches.
 - Current release uses only free TRA ODS timetables. Poll the publication catalog every 120 seconds, cache unchanged data, and never call TDX or fetch live delay pages. Keep the four columns: time, destination, train type, train number. Do not imply punctuality or delay status.
@@ -12,3 +12,6 @@
 - Preserve third-party font and board attribution. No project-wide license has been selected by the owner.
 
 - Product screens omit the word 免費. The status row reads 更新時間 HH:MM after a successful check, without 表定, 已查 or an interval suffix.
+
+- CYD cache uses LittleFS without automatic formatting, CRC validation, station/date validation and atomic rename. A new CYD install may initialize the cache partition only after backing up the original Flash. The LILYGO filesystem remains untouched.
+- Standard CYD uses GPIO14 for the LCD clock, not as a button. Use BOOT short press for paging and long press for setup on that profile.

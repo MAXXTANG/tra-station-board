@@ -1,9 +1,10 @@
 #pragma once
 #include <stdint.h>
+#include "board_profile.h"
 
 namespace display {
 constexpr int WIDTH = 320;
-constexpr int HEIGHT = 170;
+constexpr int HEIGHT = board::HEIGHT;
 
 constexpr uint8_t landscapeRotation(bool upsideDown) {
     return upsideDown ? 3 : 1;

@@ -10,3 +10,4 @@ original-*.bin
 *.pem
 device-screen.png
 .DS_Store
+.flash-backups/
