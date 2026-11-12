@@ -21,7 +21,8 @@ Preferences prefs;WebServer server(80);DNSServer dns;
 SemaphoreHandle_t modelMutex;
 std::vector<rail::Train> trains;
 String apiMessage="等待連線",scheduleDate,catalogRevision;
-constexpr uint32_t REFRESH_MS=300000;
+constexpr uint32_t REFRESH_SECONDS=120;
+constexpr uint32_t REFRESH_MS=REFRESH_SECONDS*1000;
 time_t lastChecked=0;
 bool portalActive=false;
 uint8_t touchAddress=0;volatile bool touchIRQ=false;
@@ -62,7 +63,7 @@ bool saveConfig(const Config &value){
  DynamicJsonDocument d(1024);d["ssid"]=value.ssid;d["password"]=value.password;d["station"]=value.station;
  d["ns"]=value.ns;d["flip"]=value.flip;d["auto"]=value.automatic;d["rotation"]=value.rotate180?180:0;
  JsonArray recent=d.createNestedArray("recent");for(const auto &id:value.recent)if(id.length())recent.add(id);
- d["interval"]=300;d["source"]="ods";String blob;serializeJson(d,blob);return prefs.putString("config",blob)>0;
+ d["interval"]=REFRESH_SECONDS;d["source"]="ods";String blob;serializeJson(d,blob);return prefs.putString("config",blob)>0;
 }
 void loadConfig(){
  prefs.begin("tra-board",false);DynamicJsonDocument d(2048);deserializeJson(d,prefs.getString("config","{}"));
@@ -73,7 +74,7 @@ void loadConfig(){
  int recentIndex=0;for(JsonVariant id:d["recent"].as<JsonArray>())if(recentIndex<6)cfg.recent[recentIndex++]=id.as<String>();
  normalizeRecent(cfg);
  // Migrate old paid-service settings without changing Wi-Fi, station or orientation.
- if(d.containsKey("client") || d.containsKey("secret") || (d["interval"] | 0)!=300)saveConfig(cfg);
+ if(d.containsKey("client") || d.containsKey("secret") || (d["interval"] | 0)!=REFRESH_SECONDS)saveConfig(cfg);
 }
 void setupWeb(){
  server.on("/",HTTP_GET,[]{
@@ -108,7 +109,7 @@ const char *stationName(const char *id){for(const auto &s:STATIONS)if(strcmp(id,
 bool beginPublic(HTTPClient &http,WiFiClientSecure &tls,const String &path){
  tls.setCACert(ODS_CA);tls.setTimeout(20);http.setConnectTimeout(12000);http.setTimeout(20000);http.useHTTP10(true);
  if(!http.begin(tls,"https://ods.railway.gov.tw"+path))return false;
- http.addHeader("Accept-Encoding","identity");http.setUserAgent("TRAStationBoard/0.2.0");return true;
+ http.addHeader("Accept-Encoding","identity");http.setUserAgent("TRAStationBoard/0.2.1");return true;
 }
 class HttpBodyReader {
  WiFiClient &client;int remaining;size_t total=0;uint8_t buffer[2048];size_t pos=0,count=0;
@@ -156,20 +157,20 @@ void networkTask(void*){
   if(time(nullptr)<1735689600){setMessage("正在校時");vTaskDelay(pdMS_TO_TICKS(3000));continue;}
   if((int32_t)(millis()-nextFetch)<0){vTaskDelay(pdMS_TO_TICKS(250));continue;}
   nextFetch=millis()+REFRESH_MS;String today=dateNow();rail::DailyFile file;
-  setMessage("檢查免費時刻表");
-  if(!fetchCatalog(file,today)){setMessage("目錄更新失敗，5 分鐘後重試");continue;}
+  setMessage("檢查時刻表");
+  if(!fetchCatalog(file,today)){setMessage("目錄更新失敗，2 分鐘後重試");continue;}
   if(today==scheduleDate && file.revision==catalogRevision.c_str()){
-   xSemaphoreTake(modelMutex,portMAX_DELAY);lastChecked=time(nullptr);apiMessage="表定時刻 · 每5分更新";xSemaphoreGive(modelMutex);
+   xSemaphoreTake(modelMutex,portMAX_DELAY);lastChecked=time(nullptr);apiMessage="時刻表已更新";xSemaphoreGive(modelMutex);
    Serial.println("ODS checked: cached revision unchanged");continue;
   }
-  setMessage("下載免費時刻表");std::vector<rail::Train> updated;
+  setMessage("下載時刻表");std::vector<rail::Train> updated;
   if(!fetchTimetable(file,today,updated)){setMessage("時刻表更新失敗，保留快取");continue;}
   xSemaphoreTake(modelMutex,portMAX_DELAY);
   if(scheduleDate!=today){
    time_t now=time(nullptr),cutoff=rail::midnightTaipei(today.c_str())+3600;
    for(const auto &t:trains)if(t.departure>=now-45 && t.departure<cutoff)updated.push_back(t);
   }
-  trains.swap(updated);scheduleDate=today;catalogRevision=file.revision.c_str();lastChecked=time(nullptr);apiMessage="表定時刻 · 每5分更新";
+  trains.swap(updated);scheduleDate=today;catalogRevision=file.revision.c_str();lastChecked=time(nullptr);apiMessage="時刻表已更新";
   xSemaphoreGive(modelMutex);
  }
 }
@@ -249,7 +250,7 @@ void draw(){
  std::vector<rail::Train> rows;String msg;time_t updated;
  xSemaphoreTake(modelMutex,portMAX_DELAY);if(clock)rows=rail::upcoming(trains,direction,now);msg=apiMessage;updated=lastChecked;xSemaphoreGive(modelMutex);
  int pages=std::max(1,((int)rows.size()+2)/3);if(page>=pages)page=0;
- if(rows.empty()){label(clock?(updated?"今日此方向已無班次":"等待免費時刻表"):"等待 Wi-Fi 連線與校時",40,56,AMBER);label(msg,8,86,GRAY,304);}
+ if(rows.empty()){label(clock?(updated?"今日此方向已無班次":"等待時刻表"):"等待 Wi-Fi 連線與校時",40,56,AMBER);label(msg,8,86,GRAY,304);}
  else for(int i=0;i<3;i++){
   int n=page*3+i,y=29+i*29;if(n>=(int)rows.size())break;auto&t=rows[n];
   frame.drawFastHLine(0,y+26,320,0x2945);struct tm local;localtime_r(&t.departure,&local);char tm[8];strftime(tm,sizeof(tm),"%H:%M",&local);
@@ -264,13 +265,13 @@ void draw(){
  String info;
  if(WiFi.status()!=WL_CONNECTED)info="離線 · 快取時刻";
  else if(!updated)info=msg;
- else if(now-updated>600)info="更新失敗 · 保留表定時刻";
- else {struct tm checked;localtime_r(&updated,&checked);char stamp[8];strftime(stamp,sizeof(stamp),"%H:%M",&checked);info="表定 · 已查 "+String(stamp)+" · 5分";}
+ else if(now-updated>2*REFRESH_SECONDS)info="更新失敗 · 保留表定時刻";
+ else {struct tm checked;localtime_r(&updated,&checked);char stamp[8];strftime(stamp,sizeof(stamp),"%H:%M",&checked);info="更新時間 "+String(stamp);}
  label(info,4,119,GRAY,264);label(String(page+1)+"/"+String(pages),276,119,GRAY,44);frame.pushSprite(0,0);
 }
 void setup(){
  pinMode(15,OUTPUT);digitalWrite(15,HIGH);pinMode(0,INPUT_PULLUP);pinMode(14,INPUT_PULLUP);
- Serial.begin(115200);delay(200);Serial.println("TRA Board 0.2.0 / LILYGO T-Display-S3 Touch");
+ Serial.begin(115200);delay(200);Serial.println("TRA Board 0.2.1 / LILYGO T-Display-S3 Touch");
  modelMutex=xSemaphoreCreateMutex();loadConfig();direction=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
  tft.init();tft.setRotation(display::landscapeRotation(cfg.rotate180));tft.fillScreen(BG);pinMode(38,OUTPUT);digitalWrite(38,HIGH);frame.setColorDepth(16);frame.setAttribute(PSRAM_ENABLE,true);
  if(!frame.createSprite(320,170)){Serial.println("Framebuffer allocation failed");while(true)delay(1000);}
@@ -283,7 +284,7 @@ void setup(){
 void loop(){
  if(Serial.available()) {
   char cmd=Serial.read();
-  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=300 version=0.2.0\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0);
+  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=%u version=0.2.1\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,(unsigned)REFRESH_SECONDS);
   if(cmd=='b'){direction=1-direction;page=0;draw();Serial.printf("DIRECTION %d\n",direction);}
   if(cmd=='p'){beginPortal();draw();}
   if(cmd=='s'){
