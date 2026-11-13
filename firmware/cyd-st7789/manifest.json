@@ -70,11 +70,23 @@
     "brightness": 100,
     "backlight_duty_readback": 256,
     "brightness_framebuffer_capture": true,
-    "physical_brightness_touch_verified": false,
-    "brightness_save_reboot_verified": false
+    "physical_brightness_touch_verified": true,
+    "brightness_save_reboot_verified": true
   },
   "brightness_percent_range": [
     10,
     100
-  ]
+  ],
+  "brightness_acceptance": {
+    "date": "2026-11-13T19:49:01",
+    "user_confirmed_physical_dimming": true,
+    "saved_percent": 10,
+    "pwm_duty_readback": 26,
+    "hardware_reset_observed": true,
+    "wifi_connected_after_reset": true,
+    "clock_valid_after_reset": true,
+    "station_preserved": true,
+    "rotation_preserved": true,
+    "touch_calibration_preserved": true
+  }
 }
