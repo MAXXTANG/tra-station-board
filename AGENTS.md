@@ -1,7 +1,7 @@
 # TRA Station Board
 
 - Hardware profiles: LILYGO T-Display-S3 Touch 1.9 inch (16 MB Flash / 8 MB OPI PSRAM), CYD ESP32-2432S028R (4 MB, no PSRAM; ILI9341 or ST7789 variant). Never apply a profile to a USB device whose MCU does not match. An ESP32-S3 with 8 MB Flash is not identified as a standard CYD.
-- Station-name taps open the on-device recent/region/station picker; keep Wi-Fi setup on the long-press GPIO14 action. Preserve saved Wi-Fi and orientation when selecting another station.
+- Station-name taps open the on-device recent/region/station picker; keep Wi-Fi setup on the long-press GPIO14 (LILYGO) / BOOT (CYD) action. Preserve saved Wi-Fi and orientation when selecting another station.
 - Keep the landscape layout: 320x170 / 3 rows on LILYGO, 320x240 / 5 rows on CYD. Table at top, clock at bottom left, station and direction controls on the bottom row. CYD uses a 15 KiB render band and calibrated XPT2046 coordinates. Update layout and previews together.
 - `platformio.ini` pins the toolchain and dependencies. Build with `pio run`; run `test/test_model.cpp` for data model changes.
 - Credentials are configured on the device. Never commit Wi-Fi/API credentials, original Flash backups, device screenshots with setup passwords, or build caches.

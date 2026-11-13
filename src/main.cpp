@@ -100,7 +100,7 @@ void setupWeb(){
   server.sendContent("<input type='hidden' name='csrf' value='"+csrf+"'><label>Wi-Fi 名稱</label><input name='ssid' required maxlength='32' value='"+htmlEscape(cfg.ssid)+"' autocomplete='off'>");
   server.sendContent(PORTAL_MIDDLE);
   String chunk;chunk.reserve(1600);for(auto&s:STATIONS){chunk+="<option value='"+String(s.id)+"' data-region='"+htmlEscape(s.region)+"'"+(cfg.station==s.id?" selected":"")+">"+htmlEscape(s.name)+" · "+s.id+"</option>";if(chunk.length()>1400){server.sendContent(chunk);chunk="";}}server.sendContent(chunk);
-  server.sendContent("</select><script type='application/json' id='current'>{\"labels\":\""+String(cfg.ns?"ns":"cw")+"\",\"flip\":\""+String(cfg.flip?"1":"0")+"\",\"rotation\":\""+String(cfg.rotate180?180:0)+"\",\"auto\":"+String(cfg.automatic?"true":"false")+"}</script>");
+  server.sendContent("</select><script type='application/json' id='current'>{\"labels\":\""+String(cfg.ns?"ns":"cw")+"\",\"flip\":\""+String(cfg.flip?"1":"0")+"\",\"rotation\":\""+String(cfg.rotate180?180:0)+"\",\"auto\":"+String(cfg.automatic?"true":"false")+",\"button\":\""+String(board::CYD?"BOOT":"GPIO14")+"\"}</script>");
   if(board::CYD)server.sendContent("<label><input name=\"calibrate\" type=\"checkbox\" style=\"width:auto\"> 重新校正觸控（儲存後依序點擊四個十字）</label>");
   server.sendContent(PORTAL_TAIL);server.sendContent("");
  });
@@ -382,7 +382,7 @@ void diagnosticNavigate(){
 void diagnosticState(){
  StaticJsonDocument<512> state;state["station"]=cfg.station;state["direction"]=direction;state["page"]=page;
  state["rotation"]=cfg.rotate180?180:0;state["calibrated"]=cfg.calibration.valid;state["portal"]=portalActive;
- state["clock_valid"]=time(nullptr)>1735689600;state["wifi"]=(int)WiFi.status();state["diagnostic"]=diagnosticView;state["version"]="0.3.1";
+ state["clock_valid"]=time(nullptr)>1735689600;state["wifi"]=(int)WiFi.status();state["diagnostic"]=diagnosticView;state["version"]="0.3.2";
  state["left_label"]=cfg.ns?"北上":"順行";state["right_label"]=cfg.ns?"南下":"逆行";
  state["left_direction"]=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
  state["rows"]=drawing.rows.size();state["updated"]=(int64_t)lastChecked;
@@ -392,7 +392,7 @@ void diagnosticState(){
 void setup(){
  if(!board::CYD){pinMode(15,OUTPUT);digitalWrite(15,HIGH);pinMode(14,INPUT_PULLUP);}
  pinMode(0,INPUT_PULLUP);
- Serial.begin(115200);Serial.setTimeout(300);delay(200);Serial.printf("TRA Board 0.3.1 / %s\n",board::NAME);
+ Serial.begin(115200);Serial.setTimeout(300);delay(200);Serial.printf("TRA Board 0.3.2 / %s\n",board::NAME);
  modelMutex=xSemaphoreCreateMutex();captureMutex=xSemaphoreCreateMutex();loadConfig();direction=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
  tft.init();tft.setRotation(display::landscapeRotation(cfg.rotate180));tft.fillScreen(BG);pinMode(board::BACKLIGHT,OUTPUT);digitalWrite(board::BACKLIGHT,HIGH);
  if(!frame.begin()){Serial.println("Framebuffer allocation failed");while(true)delay(1000);}
@@ -407,7 +407,7 @@ void setup(){
 void loop(){
  if(Serial.available()) {
   char cmd=Serial.read();
-  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=%u version=0.3.1\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,(unsigned)REFRESH_SECONDS);
+  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=%u version=0.3.2\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,(unsigned)REFRESH_SECONDS);
   if(cmd=='V')diagnosticNavigate();
   if(cmd=='J')diagnosticState();
   if(cmd=='S'){

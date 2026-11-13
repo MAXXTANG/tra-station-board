@@ -3,6 +3,8 @@ from pathlib import Path
 import html
 import json
 import re
+import argparse
+parser=argparse.ArgumentParser();parser.add_argument("--cyd",action="store_true");args=parser.parse_args()
 
 root = Path(__file__).resolve().parents[1]
 source = (root / 'include/portal.h').read_text()
@@ -13,14 +15,15 @@ options = ''.join(
     + (' selected' if s['id'] == '7210' else '')
     + f'>{html.escape(s["name"])} · {s["id"]}</option>' for s in stations
 )
-current = {'labels': 'ns', 'flip': '0', 'rotation': '0', 'auto': False}
+current = {'labels': 'ns', 'flip': '0', 'rotation': '0', 'auto': False, 'button': 'BOOT' if args.cyd else 'GPIO14'}
 page = (parts['PORTAL_HEAD']
         + '<label>Wi-Fi 名稱</label><input name="ssid" required maxlength="32">'
         + parts['PORTAL_MIDDLE'] + options + '</select>'
         + '<script type="application/json" id="current">' + json.dumps(current) + '</script>'
+        + ('<label><input name="calibrate" type="checkbox"> 重新校正觸控（儲存後依序點擊四個十字）</label>' if args.cyd else '')
         + parts['PORTAL_TAIL'])
 page = page.replace('<form method="post" action="/save">',
     '<p style="color:#e2bc65">設定頁預覽：請在實機熱點中儲存。</p>'
     '<form onsubmit="event.preventDefault();alert(\'這是離線預覽，請連接實機熱點後儲存。\')">')
-(root / 'setup-preview.html').write_text(page)
+output=root/'cyd-preview' if args.cyd else root;output.mkdir(exist_ok=True);(output/'setup-preview.html').write_text(page)
 print(f'Setup preview generated with {len(stations)} stations and screen orientation controls')
