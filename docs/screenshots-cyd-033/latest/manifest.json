@@ -1,0 +1,71 @@
+{
+  "captured_at": "2026-11-13T19:54:38+08:00",
+  "firmware": "0.3.3",
+  "native_size": [
+    320,
+    240
+  ],
+  "export_size": [
+    960,
+    720
+  ],
+  "scale": "nearest-neighbor",
+  "state_before": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 180,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.3",
+    "brightness": 10,
+    "backlight_duty": 26,
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 8,
+    "updated": 1794570529
+  },
+  "state_after": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 180,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.3",
+    "brightness": 10,
+    "backlight_duty": 26,
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 8,
+    "updated": 1794570874
+  },
+  "screenshots": [
+    {
+      "file": "01-recent-stations.png",
+      "title": "常用車站",
+      "kind": "device-framebuffer",
+      "crc_rows": 240,
+      "retries": 0,
+      "sha256": "20703f29d639fbc1a881ba951865104428bf08d5c72fa497555d36e1e1566bdd"
+    },
+    {
+      "file": "02-brightness-controls.png",
+      "title": "螢幕亮度設定",
+      "kind": "device-framebuffer",
+      "crc_rows": 240,
+      "retries": 0,
+      "sha256": "16d988284cad107d9bee84c110833c4684dce8bcf13aa54c0ea2e54a5df773d6"
+    }
+  ],
+  "settings_preserved": true,
+  "note": "Framebuffer pixels do not represent physical PWM dimming; captured without writing settings."
+}
