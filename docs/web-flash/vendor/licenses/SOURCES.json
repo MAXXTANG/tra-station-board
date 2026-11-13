@@ -1,0 +1,86 @@
+[
+  {
+    "package": "esp-web-tools",
+    "license_source_version": "10.5.2",
+    "declared_license": "Apache-2.0",
+    "registry_metadata": "https://registry.npmjs.org/esp-web-tools/10.5.2",
+    "license_file": "esp-web-tools-10.5.2.txt"
+  },
+  {
+    "package": "@improv-wifi/serial-sdk",
+    "license_source_version": "3.0.0",
+    "declared_license": "Apache-2.0",
+    "registry_metadata": "https://registry.npmjs.org/@improv-wifi/serial-sdk/3.0.0",
+    "license_file": "improv-wifi-serial-sdk-3.0.0.txt"
+  },
+  {
+    "package": "@material/web",
+    "license_source_version": "2.5.0",
+    "declared_license": "Apache-2.0",
+    "registry_metadata": "https://registry.npmjs.org/@material/web/2.5.0",
+    "license_file": "material-web-2.5.0.txt"
+  },
+  {
+    "package": "esptool-js",
+    "license_source_version": "0.7.0",
+    "declared_license": "Apache-2.0",
+    "registry_metadata": "https://registry.npmjs.org/esptool-js/0.7.0",
+    "license_file": "esptool-js-0.7.0.txt"
+  },
+  {
+    "package": "lit",
+    "license_source_version": "3.2.1",
+    "declared_license": "BSD-3-Clause",
+    "registry_metadata": "https://registry.npmjs.org/lit/3.2.1",
+    "license_file": "lit-3.2.1.txt"
+  },
+  {
+    "package": "tslib",
+    "license_source_version": "2.8.1",
+    "declared_license": "0BSD",
+    "registry_metadata": "https://registry.npmjs.org/tslib/2.8.1",
+    "license_file": "tslib-2.8.1.txt"
+  },
+  {
+    "package": "pako",
+    "license_source_version": "2.1.0",
+    "declared_license": "(MIT AND Zlib)",
+    "registry_metadata": "https://registry.npmjs.org/pako/2.1.0",
+    "license_file": "pako-2.1.0.txt"
+  },
+  {
+    "package": "atob-lite",
+    "license_source_version": "2.0.0",
+    "declared_license": "MIT",
+    "registry_metadata": "https://registry.npmjs.org/atob-lite/2.0.0",
+    "license_file": "atob-lite-2.0.0.txt"
+  },
+  {
+    "package": "lit-html",
+    "license_source_version": "3.2.1",
+    "declared_license": "BSD-3-Clause",
+    "registry_metadata": "https://registry.npmjs.org/lit-html/3.2.1",
+    "license_file": "lit-html-3.2.1.txt"
+  },
+  {
+    "package": "lit-element",
+    "license_source_version": "4.1.1",
+    "declared_license": "BSD-3-Clause",
+    "registry_metadata": "https://registry.npmjs.org/lit-element/4.1.1",
+    "license_file": "lit-element-4.1.1.txt"
+  },
+  {
+    "package": "@lit/reactive-element",
+    "license_source_version": "2.0.4",
+    "declared_license": "BSD-3-Clause",
+    "registry_metadata": "https://registry.npmjs.org/@lit/reactive-element/2.0.4",
+    "license_file": "lit-reactive-element-2.0.4.txt"
+  },
+  {
+    "package": "@lit/context",
+    "license_source_version": "1.1.6",
+    "declared_license": "BSD-3-Clause",
+    "registry_metadata": "https://registry.npmjs.org/@lit/context/1.1.6",
+    "license_file": "lit-context-1.1.6.txt"
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "version": "0.3.3",
+  "esp_web_tools": "10.5.2",
+  "profiles": {
+    "cyd-st7789": {
+      "label": "ESP32-2432S028 / ST7789",
+      "hardware_verified": true,
+      "manifest": "manifests/cyd-st7789.json",
+      "firmware": "firmware/tra-board-0.3.3-cyd-st7789-full.bin",
+      "sha256": "c8f880375681eb525b70e28a3fa6518c452ea06915383912c204e0f589054318",
+      "size": 4128768,
+      "source_app_sha256": "21fd2d4b7e9d0f6777018bb6b6f474fa4fef1450eb8651d87d2cf06c0759171a",
+      "flash_mode": "dio",
+      "flash_frequency": "40m",
+      "flash_bytes": 4194304
+    },
+    "cyd": {
+      "label": "ESP32-2432S028R / ILI9341",
+      "hardware_verified": false,
+      "manifest": "manifests/cyd.json",
+      "firmware": "firmware/tra-board-0.3.3-cyd-full.bin",
+      "sha256": "cfa5f2ec7c3ccc8962f1a1891f599f0a350ab096b202ef2a02a0c37786db1713",
+      "size": 4128768,
+      "source_app_sha256": "f836927ad3f6555df39794ff4f71fc5808845e283df442e5b124f59352dba110",
+      "flash_mode": "dio",
+      "flash_frequency": "40m",
+      "flash_bytes": 4194304
+    }
+  }
+}

@@ -10,6 +10,8 @@
 
 [下載 v0.3.3 Release 韌體套件](https://github.com/MAXXTANG/tra-station-board/releases/tag/v0.3.3) · [發行版燒錄方式](docs/releases/FLASHING-0.3.3.md) · [更新說明](docs/releases/RELEASE_NOTES-0.3.3.md)
 
+**[用瀏覽器直接燒錄 →](https://maxxtang.github.io/tra-station-board/)** 不用安裝 Python。支援 ST7789／ILI9341 板型選擇；此頁為完整安裝，會清除原 Wi-Fi、站點、亮度與校正，燒錄後需重新配網。要保留設定更新，請使用 Release 的 app-only 方式。
+
 ## 畫面截圖
 
 **2.8 吋 CYD2USB 北上實機畫面**，原始 320×240，每頁五班；班次為擷取當下內容。
