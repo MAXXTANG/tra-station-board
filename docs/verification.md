@@ -178,3 +178,10 @@
 - 網頁同站託管 ESP Web Tools 10.5.2 官方預建檔，核對 npm SHA-512 及 runtime SHA-256，保留授權文件。兩份 manifest 僅提供 ESP32，固定完整清除及關閉 Improv 等待；燒錄後由裝置熱點配網。
 - 自動測試通過：兩種映像校驗、錯誤 MCU／來源路徑、損壞／截斷、未確認阻止連接、切換板型清除確認、對話框鎖定、不支援瀏覽器／HTTP、錯誤重試、Blob 清理。靜態連結、圖片替代文字、尺寸及 vendor 動態匯入檔案檢查通過。
 - 此階段為檔案與主機 UI 測試；GitHub Pages 公開部署與實際瀏覽器檢查另行記錄。未透過網頁清除或重刷既有板子，不能宣稱已完成瀏覽器實機燒錄驗收。
+
+### GitHub Pages 與公開瀏覽器驗證
+
+- 已啟用 https://maxxtang.github.io/tra-station-board/，來源為 main／docs，HTTPS enforced，GitHub Pages 回報 built。repo 首頁網址亦指向此安裝頁；v0.3.3 Release 標籤保持不變。
+- 未登入讀取首頁、app.mjs、catalog、兩份 manifest、燒錄對話框模組均成功，JavaScript MIME 正確。公開下載兩份 4,128,768 bytes 完整映像，SHA-256 與 catalog 一致，app 區與原 Release 逐 byte 相同，NVS 區為空白。
+- 實際瀏覽器確認 ST7789 與 ILI9341 均顯示校驗完成，未勾選時禁用、勾選後出現對應板型按鈕、切換板型會清除確認；未點選連接或執行燒錄。瀏覽器錯誤／警告紀錄為空，825px 視窗寬度與頁面寬度相同，無水平溢出。
+- 完成後回復 ST7789 預設選項、確認欄位未勾選，保留公開頁供使用者開啟。此輪沒有存取或變更板上 Wi-Fi、站點、亮度及校正。
