@@ -8,6 +8,8 @@
 
 目前共用程式與 CYD 預編譯韌體為 **0.3.3**，新增常用車站頁的螢幕亮度設定。2.8 吋 CYD2USB 已完成燒錄、配網、四點校正、五班列車顯示及重啟快取驗證；0.3.1 分類圖庫與各版驗證範圍保留於文件。
 
+[下載 v0.3.3 Release 韌體套件](https://github.com/MAXXTANG/tra-station-board/releases/tag/v0.3.3) · [發行版燒錄方式](docs/releases/FLASHING-0.3.3.md) · [更新說明](docs/releases/RELEASE_NOTES-0.3.3.md)
+
 ## 畫面截圖
 
 **2.8 吋 CYD2USB 北上實機畫面**，原始 320×240，每頁五班；班次為擷取當下內容。
