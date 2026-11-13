@@ -3,8 +3,9 @@
 #define USE_HSPI_PORT
 #ifdef TRA_CYD_ST7789
 #define ST7789_DRIVER
-#define TFT_RGB_ORDER TFT_RGB
-#define TFT_INVERSION_ON
+// CYD2USB reference configuration: BGR order, normal inversion mode.
+#define TFT_RGB_ORDER TFT_BGR
+#define TFT_INVERSION_OFF
 #else
 #define ILI9341_2_DRIVER
 #define TFT_RGB_ORDER TFT_BGR

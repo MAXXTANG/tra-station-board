@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install a packaged CYD build only after checking its MCU and making a backup.
+"""Install a packaged CYD build after checking its MCU, with backup by default.
 
 No --force option: a standard ESP32 CYD image must never be written to an S3.
 """
@@ -31,6 +31,8 @@ def main():
     parser.add_argument('--initialize-cache', action='store_true',
                         help='Write the packaged empty cache filesystem after backing up original Flash')
     parser.add_argument('--baud', type=int, default=115200)
+    parser.add_argument('--skip-backup', action='store_true',
+                        help='Skip the original Flash backup only when the owner explicitly requested it')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     package = root / 'firmware' / args.variant
@@ -55,15 +57,18 @@ def main():
         raise RuntimeError('Not a standard ESP32 CYD target: ' + (chip or 'unidentified MCU'))
     if 'Detected flash size: 4MB' not in identity:
         raise RuntimeError('Flash is not the expected CYD 4 MB; review the actual board before installation')
-    backup_dir = root / '.flash-backups'
-    backup_dir.mkdir(mode=0o700, exist_ok=True)
-    stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-    backup = backup_dir / (stamp + '-before-cyd.bin')
-    run(base + ['--chip', 'esp32', '--after', 'no_reset', 'read_flash', '0x0', '0x400000', str(backup)])
-    os.chmod(backup, 0o600)
-    if backup.stat().st_size != 0x400000:
-        raise RuntimeError('Incomplete backup; not writing firmware')
-    print('Original Flash backup:', backup, flush=True)
+    if args.skip_backup:
+        print('Skipping original Flash backup at the owner\'s explicit request.', flush=True)
+    else:
+        backup_dir = root / '.flash-backups'
+        backup_dir.mkdir(mode=0o700, exist_ok=True)
+        stamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+        backup = backup_dir / (stamp + '-before-cyd.bin')
+        run(base + ['--chip', 'esp32', '--after', 'no_reset', 'read_flash', '0x0', '0x400000', str(backup)])
+        os.chmod(backup, 0o600)
+        if backup.stat().st_size != 0x400000:
+            raise RuntimeError('Incomplete backup; not writing firmware')
+        print('Original Flash backup:', backup, flush=True)
     pairs = []
     for name, offset in manifest['offsets'].items():
         if name == 'littlefs.bin' and not args.initialize_cache:

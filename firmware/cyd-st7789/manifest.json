@@ -1,12 +1,12 @@
 {
-  "board": "ESP32-2432S028R CYD",
+  "board": "ESP32-2432S028 CYD2USB",
   "variant": "cyd-st7789",
   "display": "ST7789",
   "chip": "esp32",
   "flash_bytes": 4194304,
   "version": "0.3.0-dev",
   "refresh_seconds": 120,
-  "hardware_verified": false,
+  "hardware_verified": true,
   "offsets": {
     "bootloader.bin": "0x1000",
     "partitions.bin": "0x8000",
@@ -16,7 +16,29 @@
   "sha256": {
     "bootloader.bin": "0f65515a7e0dfe9cc4bc78c01bef79c941af1b2deb34d01ddd500ee3d465eedf",
     "partitions.bin": "38b4dda337a79ca3650ec294d4efbef6b573c80297319d34bfd5eaa1730cc366",
-    "tra-board-app.bin": "fdf7154b1b41ac123dd7ed6640832258d45dc4e2484d1e496302d66067405624",
+    "tra-board-app.bin": "ad733f6b6aa725a21161e14a4dd7eca95e55e4de4692d8488228ab92a0c9be13",
     "littlefs.bin": "48fb33bc5a7c57d934f2ded81848edb5baaffa010d3dd49f84949d79f6333132"
+  },
+  "display_config": {
+    "rgb_order": "BGR",
+    "inversion": "OFF"
+  },
+  "verification": {
+    "chip": true,
+    "flash": true,
+    "boot": true,
+    "filesystem_mount": true,
+    "display": true,
+    "touch": true,
+    "wifi": true,
+    "ods": true,
+    "cache_load": true,
+    "cache_save": true,
+    "settings_persistence": true,
+    "automatic_poll": true,
+    "poll_interval_seconds": 120.1,
+    "framebuffer_capture": false,
+    "rotation_180": false,
+    "long_run": false
   }
 }

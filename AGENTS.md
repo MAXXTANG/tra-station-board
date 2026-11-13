@@ -13,5 +13,5 @@
 
 - Product screens omit the word 免費. The status row reads 更新時間 HH:MM after a successful check, without 表定, 已查 or an interval suffix.
 
-- CYD cache uses LittleFS without automatic formatting, CRC validation, station/date validation and atomic rename. A new CYD install may initialize the cache partition only after backing up the original Flash. The LILYGO filesystem remains untouched.
+- CYD cache uses LittleFS without automatic formatting, CRC validation, station/date validation and atomic rename. Back up original Flash before initializing a new CYD cache unless the owner explicitly declines a backup. The LILYGO filesystem remains untouched.
 - Standard CYD uses GPIO14 for the LCD clock, not as a button. Use BOOT short press for paging and long press for setup on that profile.
