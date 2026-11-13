@@ -20,6 +20,7 @@
 #include "touch_calibration.h"
 #include "cyd_touch.h"
 #include "cache_store.h"
+#include "capture_transport.h"
 
 struct Config {String ssid,password,station="7210"; bool flip=false,ns=true,automatic=false,rotate180=false; String recent[6]; display::Calibration calibration;} cfg;
 TFT_eSPI tft; BoardFrame frame(&tft);
@@ -27,7 +28,7 @@ TFT_eSPI tft; BoardFrame frame(&tft);
 CydTouch cydTouch;
 #endif
 Preferences prefs;WebServer server(80);DNSServer dns;
-SemaphoreHandle_t modelMutex;
+SemaphoreHandle_t modelMutex,captureMutex;
 std::vector<rail::Train> trains;
 String apiMessage="等待連線",scheduleDate,catalogRevision;
 constexpr uint32_t REFRESH_SECONDS=120;
@@ -39,7 +40,9 @@ uint8_t touchAddress=0;volatile bool touchIRQ=false;
 String apName,apPassword,csrf;
 uint32_t apStarted=0,rebootAt=0,lastAction=0;
 int direction=1,page=0;
-enum class View {Board,Recent,Regions,Stations,Switching,Calibrate};
+enum class View {Board,Recent,Regions,Stations,Switching,Calibrate,SetupDemo};
+bool diagnosticView=false;uint32_t diagnosticAt=0;
+View originalView=View::Board;int originalDirection=0,originalPage=0,originalPickerPage=0;String originalRegion;
 View view=View::Board;int pickerPage=0,lastRegionPage=0;String pickerRegion,switchingStation;
 constexpr uint16_t BG=0x0841,WHITE=0xf7be,AMBER=0xf5ad,GRAY=0x8410,RED=0xf986;
 #if !defined(TRA_BOARD_CYD)
@@ -176,8 +179,9 @@ void networkTask(void*){
  uint32_t nextFetch=0;
  for(;;){
   if(rebootAt || WiFi.status()!=WL_CONNECTED){vTaskDelay(pdMS_TO_TICKS(250));continue;}
-  if(time(nullptr)<1735689600){setMessage("正在校時");vTaskDelay(pdMS_TO_TICKS(3000));continue;}
+  if(time(nullptr)<1735689600){{SemaphoreLease lease(captureMutex,portMAX_DELAY);setMessage("正在校時");}vTaskDelay(pdMS_TO_TICKS(3000));continue;}
   if((int32_t)(millis()-nextFetch)<0){vTaskDelay(pdMS_TO_TICKS(250));continue;}
+  SemaphoreLease lease(captureMutex,portMAX_DELAY);
   nextFetch=millis()+REFRESH_MS;String today=dateNow();rail::DailyFile file;
   setMessage("檢查時刻表");
   if(!fetchCatalog(file,today)){setMessage("目錄更新失敗，2 分鐘後重試");continue;}
@@ -302,10 +306,11 @@ void pickerTap(int x,int y){
 }
 void drawPass(){
  frame.fillSprite(BG);time_t now=drawing.now;bool clock=drawing.clock;
- if(portalActive){
-  label("臺鐵看板設定",8,5,AMBER);label("手機連接 Wi-Fi",8,30);label(apName,8,51,WHITE);
-  label("密碼："+apPassword,8,74,AMBER);label("瀏覽器開啟",8,99);label("192.168.4.1",8,122,WHITE);
-  label(WiFi.status()==WL_CONNECTED?"Wi-Fi 已連線，儲存後返回看板":"完成配網、選站後開始顯示",8,149,GRAY);frame.pushSprite(0,0);return;
+ if(portalActive || view==View::SetupDemo){
+  bool demo=view==View::SetupDemo;
+  label("臺鐵看板設定",8,5,AMBER);label("手機連接 Wi-Fi",8,30);label(demo?String("TRA-DEMO"):apName,8,51,WHITE);
+  label("密碼："+(demo?String("DEMO1234"):apPassword),8,74,AMBER);label("瀏覽器開啟",8,99);label("192.168.4.1",8,122,WHITE);
+  label(!demo&&WiFi.status()==WL_CONNECTED?"Wi-Fi 已連線，儲存後返回看板":"完成配網、選站後開始顯示",8,149,GRAY);frame.pushSprite(0,0);return;
  }
  if(view==View::Calibrate){drawCalibration();frame.pushSprite(0,0);return;}
  if(view!=View::Board){drawPicker();return;}
@@ -345,11 +350,50 @@ void prepareDraw(){
  drawing.message=apiMessage;drawing.date=scheduleDate;drawing.updated=lastChecked;xSemaphoreGive(modelMutex);
 }
 void draw(){prepareDraw();for(int band=0;band<board::HEIGHT;band+=BoardFrame::BAND_HEIGHT){frame.band(band);drawPass();}}
+
+void restoreDiagnostic(){
+ if(!diagnosticView)return;
+ view=originalView;direction=originalDirection;page=originalPage;pickerPage=originalPickerPage;pickerRegion=originalRegion;
+ diagnosticView=false;
+}
+void diagnosticNavigate(){
+ StaticJsonDocument<512> request;
+ if(deserializeJson(request,Serial.readStringUntil('\n'))){Serial.println("VIEW_ERROR invalid_json");return;}
+ String target=request["view"] | "";
+ if(target=="restore"){restoreDiagnostic();draw();Serial.println("VIEW_OK restore");return;}
+ if(portalActive){Serial.println("VIEW_ERROR setup_active");return;}
+ View next;
+ if(target=="board")next=View::Board;else if(target=="recent")next=View::Recent;
+ else if(target=="regions")next=View::Regions;else if(target=="stations")next=View::Stations;
+ else if(target=="switch_demo")next=View::Switching;else if(target=="setup_demo")next=View::SetupDemo;
+ else if(target=="calibrate_demo" && board::CYD)next=View::Calibrate;
+ else{Serial.println("VIEW_ERROR unknown_view");return;}
+ if(!diagnosticView){originalView=view;originalDirection=direction;originalPage=page;originalPickerPage=pickerPage;originalRegion=pickerRegion;}
+ diagnosticView=true;diagnosticAt=millis();view=next;
+ page=std::max(0,std::min(99,request["page"] | 0));pickerPage=page;
+ direction=std::max(0,std::min(1,request["direction"] | direction));
+ if(next==View::Stations)pickerRegion=request["region"] | "宜蘭縣";
+ if(next==View::Switching)switchingStation=request["station"] | "礁溪";
+#ifdef TRA_BOARD_CYD
+ if(next==View::Calibrate){calibrationSession.step=std::max(0,std::min(3,request["step"] | 0));calibrationNotice="";}
+#endif
+ draw();Serial.printf("VIEW_OK %s\n",target.c_str());
+}
+void diagnosticState(){
+ StaticJsonDocument<512> state;state["station"]=cfg.station;state["direction"]=direction;state["page"]=page;
+ state["rotation"]=cfg.rotate180?180:0;state["calibrated"]=cfg.calibration.valid;state["portal"]=portalActive;
+ state["clock_valid"]=time(nullptr)>1735689600;state["wifi"]=(int)WiFi.status();state["diagnostic"]=diagnosticView;state["version"]="0.3.1";
+ state["left_label"]=cfg.ns?"北上":"順行";state["right_label"]=cfg.ns?"南下":"逆行";
+ state["left_direction"]=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
+ state["rows"]=drawing.rows.size();state["updated"]=(int64_t)lastChecked;
+ Serial.print("STATE ");serializeJson(state,Serial);Serial.println();
+}
+
 void setup(){
  if(!board::CYD){pinMode(15,OUTPUT);digitalWrite(15,HIGH);pinMode(14,INPUT_PULLUP);}
  pinMode(0,INPUT_PULLUP);
- Serial.begin(115200);delay(200);Serial.printf("TRA Board 0.3.0-dev / %s\n",board::NAME);
- modelMutex=xSemaphoreCreateMutex();loadConfig();direction=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
+ Serial.begin(115200);Serial.setTimeout(300);delay(200);Serial.printf("TRA Board 0.3.1 / %s\n",board::NAME);
+ modelMutex=xSemaphoreCreateMutex();captureMutex=xSemaphoreCreateMutex();loadConfig();direction=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
  tft.init();tft.setRotation(display::landscapeRotation(cfg.rotate180));tft.fillScreen(BG);pinMode(board::BACKLIGHT,OUTPUT);digitalWrite(board::BACKLIGHT,HIGH);
  if(!frame.begin()){Serial.println("Framebuffer allocation failed");while(true)delay(1000);}
  cache.begin();rail::CacheMeta meta;if(cache.load(cfg.station,meta,trains)){scheduleDate=meta.date.c_str();lastChecked=meta.checked;cachedFromDisk=true;Serial.printf("Cache loaded rows=%u date=%s\n",(unsigned)trains.size(),meta.date.c_str());}
@@ -363,7 +407,13 @@ void setup(){
 void loop(){
  if(Serial.available()) {
   char cmd=Serial.read();
-  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=%u version=0.3.0-dev\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,(unsigned)REFRESH_SECONDS);
+  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=%u version=0.3.1\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,(unsigned)REFRESH_SECONDS);
+  if(cmd=='V')diagnosticNavigate();
+  if(cmd=='J')diagnosticState();
+  if(cmd=='S'){
+   if(portalActive)Serial.println("CAPTURE_REFUSED_SETUP");
+   else{SemaphoreLease lease(captureMutex,0);if(!lease)Serial.println("CAPTURE_BUSY");else{prepareDraw();captureRows(frame,[]{drawPass();});}}
+  }
   if(cmd=='b'){direction=1-direction;page=0;draw();Serial.printf("DIRECTION %d\n",direction);}
   if(cmd=='p'){beginPortal();draw();}
   if(cmd=='s'){
@@ -378,17 +428,18 @@ void loop(){
   }
  }
  static uint32_t lastDraw=0,lastTouch=0,pressStart=0,wifiDown=millis(),autoAt=millis();static bool held=false,longDone=false,bootHeld=false;
+ if(diagnosticView && millis()-diagnosticAt>300000){restoreDiagnostic();draw();}
  if(rebootAt&&(int32_t)(millis()-rebootAt)>=0)ESP.restart();
  if(portalActive){dns.processNextRequest();server.handleClient();if(millis()-apStarted>600000&&WiFi.status()==WL_CONNECTED){WiFi.softAPdisconnect(true);portalActive=false;}}
  if(WiFi.status()==WL_CONNECTED)wifiDown=millis();else if(millis()-wifiDown>30000)beginPortal();
  bool down=digitalRead(board::BUTTON)==LOW;
  if(down&&!held){held=true;pressStart=millis();longDone=false;}
- if(held&&down&&!longDone&&millis()-pressStart>=3000){beginPortal();longDone=true;lastAction=millis();}
- if(!down&&held){if(!longDone&&millis()-pressStart>30){if(view==View::Board)page++;else pickerPage++;lastAction=millis();draw();}held=false;}
- bool boot=!board::CYD && digitalRead(0)==LOW;if(boot&&!bootHeld){if(view==View::Board){direction=1-direction;page=0;}else view=View::Board;lastAction=millis();autoAt=millis();draw();}bootHeld=boot;
- if(!portalActive && view==View::Calibrate && tickCalibration())draw();
- int x,y;if(view!=View::Calibrate && touchPoint(x,y)&&millis()-lastTouch>250){lastTouch=millis();lastAction=millis();autoAt=millis();if(!portalActive){if(view!=View::Board)pickerTap(x,y);else if(y>=board::NAV_Y&&x>=74&&x<166){view=View::Recent;pickerPage=0;}else if(y>=board::NAV_Y&&x>=170){int north=(cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0);int left=cfg.ns?north:0;direction=x<242?left:1-left;page=0;}else if((y>=27&&y<board::TABLE_BOTTOM)||(y>=board::TABLE_BOTTOM&&y<board::NAV_Y&&x>=270))page++;}draw();}
- if(!portalActive&&view==View::Board&&cfg.automatic&&millis()-autoAt>15000&&millis()-lastAction>15000){direction=1-direction;page=0;autoAt=millis();}
+ if(!diagnosticView&&held&&down&&!longDone&&millis()-pressStart>=3000){beginPortal();longDone=true;lastAction=millis();}
+ if(!diagnosticView && !down&&held){if(!longDone&&millis()-pressStart>30){if(view==View::Board)page++;else pickerPage++;lastAction=millis();draw();}held=false;}
+ bool boot=!board::CYD && digitalRead(0)==LOW;if(!diagnosticView&&boot&&!bootHeld){if(view==View::Board){direction=1-direction;page=0;}else view=View::Board;lastAction=millis();autoAt=millis();draw();}bootHeld=boot;
+ if(!diagnosticView && !portalActive && view==View::Calibrate && tickCalibration())draw();
+ int x,y;if(!diagnosticView && view!=View::Calibrate && touchPoint(x,y)&&millis()-lastTouch>250){lastTouch=millis();lastAction=millis();autoAt=millis();if(!portalActive){if(view!=View::Board)pickerTap(x,y);else if(y>=board::NAV_Y&&x>=74&&x<166){view=View::Recent;pickerPage=0;}else if(y>=board::NAV_Y&&x>=170){int north=(cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0);int left=cfg.ns?north:0;direction=x<242?left:1-left;page=0;}else if((y>=27&&y<board::TABLE_BOTTOM)||(y>=board::TABLE_BOTTOM&&y<board::NAV_Y&&x>=270))page++;}draw();}
+ if(!diagnosticView&&!portalActive&&view==View::Board&&cfg.automatic&&millis()-autoAt>15000&&millis()-lastAction>15000){direction=1-direction;page=0;autoAt=millis();}
  if(millis()-lastDraw>1000){draw();lastDraw=millis();}
  delay(5);
 }

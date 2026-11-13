@@ -1,0 +1,355 @@
+{
+  "firmware": "0.3.1",
+  "station": "7210",
+  "captured_on": "2026-11-13T12:26:14.960102+08:00",
+  "initial_state": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 0,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.1",
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 48,
+    "updated": 1794542971
+  },
+  "restored_state": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 0,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.1",
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 29,
+    "updated": 1794544089
+  },
+  "entries": [
+    {
+      "number": 1,
+      "title": "礁溪站・北上",
+      "category": "01-timetable",
+      "path": "01-timetable/01-board-direction-1.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "board",
+        "direction": 1
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:28:13.974174+08:00",
+      "sha256": "2e7c71615212b22b0e97b2bc2bc7ad872f02bd75ca8ccd05babe60ce596604b9"
+    },
+    {
+      "number": 2,
+      "title": "礁溪站・南下",
+      "category": "01-timetable",
+      "path": "01-timetable/02-board-direction-0.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "board",
+        "direction": 0
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:28:18.073440+08:00",
+      "sha256": "3ab4cf47535fcabe60ee67a827f5bafaeb138f6a63b3c5b1a4961f85dfcdfa29"
+    },
+    {
+      "number": 3,
+      "title": "常用車站",
+      "category": "02-stations",
+      "path": "02-stations/03-recent-stations.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "recent"
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:42.405677+08:00",
+      "sha256": "ad9ae1b5b4c54e7ca9cbc63311502b701c3640c33b60bd67e1c6c3e84ee976cd"
+    },
+    {
+      "number": 4,
+      "title": "縣市清單 1/3",
+      "category": "02-stations",
+      "path": "02-stations/04-regions-page-1.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "regions",
+        "page": 0
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:45.610668+08:00",
+      "sha256": "07a26a7bb6a3900bf1dacc157c2fd99def472c70d5d7bf6d32c36a0a7aebea5b"
+    },
+    {
+      "number": 5,
+      "title": "縣市清單 2/3",
+      "category": "02-stations",
+      "path": "02-stations/05-regions-page-2.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "regions",
+        "page": 1
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:48.829713+08:00",
+      "sha256": "0965592514cc50f1e9bf7babe86d344d91907a147503b81575f3dda46622047b"
+    },
+    {
+      "number": 6,
+      "title": "縣市清單 3/3",
+      "category": "02-stations",
+      "path": "02-stations/06-regions-page-3.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "regions",
+        "page": 2
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:51.409768+08:00",
+      "sha256": "a4b1b77a733a30886cc34228e51381ecc6de345a11e610602ea93e92b1cb2395"
+    },
+    {
+      "number": 7,
+      "title": "宜蘭縣車站 1/3",
+      "category": "02-stations",
+      "path": "02-stations/07-county-stations-page-1.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "stations",
+        "region": "宜蘭縣",
+        "page": 0
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:54.357780+08:00",
+      "sha256": "3bc61b12e7990839f8ddcb1db1905aeb166027438a6543f063a02292705d0db7"
+    },
+    {
+      "number": 8,
+      "title": "宜蘭縣車站 2/3",
+      "category": "02-stations",
+      "path": "02-stations/08-county-stations-page-2.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "stations",
+        "region": "宜蘭縣",
+        "page": 1
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:57.201642+08:00",
+      "sha256": "f29d1a5cf8123efd3af8e4b76089ffa8780200c73cee413c8af3ee185443b5ff"
+    },
+    {
+      "number": 9,
+      "title": "宜蘭縣車站 3/3",
+      "category": "02-stations",
+      "path": "02-stations/09-county-stations-page-3.png",
+      "kind": "實機 framebuffer；USB 診斷切頁",
+      "request": {
+        "view": "stations",
+        "region": "宜蘭縣",
+        "page": 2
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:25:59.892111+08:00",
+      "sha256": "f6ea307fee35e0217c427103bd9924bf8b5a37f8e94ca56204d531c6f91c968a"
+    },
+    {
+      "number": 10,
+      "title": "切換車站提示",
+      "category": "03-system",
+      "path": "03-system/10-switch-station-demo.png",
+      "kind": "實機渲染示例；沒有儲存選站或重啟",
+      "request": {
+        "view": "switch_demo",
+        "station": "宜蘭"
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:26:02.244067+08:00",
+      "sha256": "f4fd1485f3415441b6dafb2ff8a69ceaaef6fda3a25f7ea9d9ba3aa127d1be49"
+    },
+    {
+      "number": 11,
+      "title": "板上配網提示",
+      "category": "03-system",
+      "path": "03-system/11-wifi-setup-demo.png",
+      "kind": "實機渲染示例；TRA-DEMO／DEMO1234 為假資料，未開啟熱點",
+      "request": {
+        "view": "setup_demo"
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:26:05.431639+08:00",
+      "sha256": "c1ac66e7bbdb3260b9254b107e774fa353297898f3fef697862a40a210969830"
+    },
+    {
+      "number": 12,
+      "title": "觸控校正 1/4",
+      "category": "04-calibration",
+      "path": "04-calibration/12-calibration-step-1.png",
+      "kind": "實機渲染校正提示；不改寫既有校正值",
+      "request": {
+        "view": "calibrate_demo",
+        "step": 0
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:26:07.778574+08:00",
+      "sha256": "23969fd92b1b46d60b32c05a270853bbf4dd4eba10b62ae42fdb24220b43aa89"
+    },
+    {
+      "number": 13,
+      "title": "觸控校正 2/4",
+      "category": "04-calibration",
+      "path": "04-calibration/13-calibration-step-2.png",
+      "kind": "實機渲染校正提示；不改寫既有校正值",
+      "request": {
+        "view": "calibrate_demo",
+        "step": 1
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:26:10.138389+08:00",
+      "sha256": "7969db5a82a3ac8e90e4e22513c1cb3a10bc020f86d52c42e0f3cfde9f248bb8"
+    },
+    {
+      "number": 14,
+      "title": "觸控校正 3/4",
+      "category": "04-calibration",
+      "path": "04-calibration/14-calibration-step-3.png",
+      "kind": "實機渲染校正提示；不改寫既有校正值",
+      "request": {
+        "view": "calibrate_demo",
+        "step": 2
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:26:12.446787+08:00",
+      "sha256": "63d11b66981de2826cbe955c0cc4b5d26927941757d774fc7ff84b3ac093d8ef"
+    },
+    {
+      "number": 15,
+      "title": "觸控校正 4/4",
+      "category": "04-calibration",
+      "path": "04-calibration/15-calibration-step-4.png",
+      "kind": "實機渲染校正提示；不改寫既有校正值",
+      "request": {
+        "view": "calibrate_demo",
+        "step": 3
+      },
+      "native_size": [
+        320,
+        240
+      ],
+      "crc_checked_rows": 240,
+      "retries": 0,
+      "captured_at": "2026-11-13T12:26:14.794268+08:00",
+      "sha256": "51e8220918030a976658e3ca88cee53e90609aa7d86b90e562f6f8b17d999a5e"
+    },
+    {
+      "number": 16,
+      "title": "上下顛倒方向示意",
+      "category": "05-orientation",
+      "path": "05-orientation/16-rotation-180.png",
+      "kind": "由第一張實機 framebuffer 旋轉示意；非實體方向／觸控驗收",
+      "sha256": "4dc9bb9eddff6b52ff7ffb0da98af88dc9cac1c25e147daece92ad884d61d29d",
+      "derived_from": "01-timetable/01-board-direction-1.png"
+    }
+  ],
+  "fresh_timetable_state": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 0,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.1",
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 29,
+    "updated": 1794544089
+  },
+  "capture_protocol": "row RLE565 with CRC32 and ACK",
+  "total_verified_rows": 3600
+}

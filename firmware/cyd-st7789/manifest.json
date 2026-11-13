@@ -4,7 +4,7 @@
   "display": "ST7789",
   "chip": "esp32",
   "flash_bytes": 4194304,
-  "version": "0.3.0-dev",
+  "version": "0.3.1",
   "refresh_seconds": 120,
   "hardware_verified": true,
   "offsets": {
@@ -16,7 +16,7 @@
   "sha256": {
     "bootloader.bin": "0f65515a7e0dfe9cc4bc78c01bef79c941af1b2deb34d01ddd500ee3d465eedf",
     "partitions.bin": "38b4dda337a79ca3650ec294d4efbef6b573c80297319d34bfd5eaa1730cc366",
-    "tra-board-app.bin": "ad733f6b6aa725a21161e14a4dd7eca95e55e4de4692d8488228ab92a0c9be13",
+    "tra-board-app.bin": "498f9f290a56cca4a432a5abde404127c3ef5c0c6273fcb795b594d35356d7c4",
     "littlefs.bin": "48fb33bc5a7c57d934f2ded81848edb5baaffa010d3dd49f84949d79f6333132"
   },
   "display_config": {
@@ -37,8 +37,12 @@
     "settings_persistence": true,
     "automatic_poll": true,
     "poll_interval_seconds": 120.1,
-    "framebuffer_capture": false,
+    "framebuffer_capture": true,
     "rotation_180": false,
-    "long_run": false
-  }
+    "long_run": false,
+    "capture_crc_rows": 3600,
+    "capture_state_restored": true,
+    "poll_interval_verified_on_version": "0.3.0-dev"
+  },
+  "capture_protocol": "CRC32-checked row RLE565 with ACK"
 }

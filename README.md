@@ -1,6 +1,8 @@
 # 臺鐵桌上型時刻看板
 
-> 此分支新增 [CYD 2.8 吋 0.3.0-dev](docs/cyd.md)：320×240、每頁五班、觸控校正與離線快取。已完成主機測試、交叉編譯及 CYD2USB 燒錄開機，配網與觸控實機驗收見開發紀錄。下方 0.2.1 紀錄適用原 LILYGO。
+> 此分支新增 [CYD 2.8 吋 0.3.1](docs/cyd.md)：320×240、每頁五班、觸控校正與離線快取。已完成主機測試、交叉編譯及 CYD2USB 燒錄開機，配網與觸控實機驗收見開發紀錄。下方 0.2.1 紀錄適用原 LILYGO。
+
+[查看 2.8 吋 CYD 分類實機畫面](docs/screenshots-cyd/README.md)。
 
 **0.2.1 時刻表版** · 適用 LILYGO T-Display-S3 Touch 1.9 吋，16 MB Flash／8 MB OPI PSRAM。
 
