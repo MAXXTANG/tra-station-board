@@ -4,7 +4,7 @@
   "display": "ILI9341",
   "chip": "esp32",
   "flash_bytes": 4194304,
-  "version": "0.3.2",
+  "version": "0.3.3",
   "refresh_seconds": 120,
   "hardware_verified": false,
   "offsets": {
@@ -16,9 +16,13 @@
   "sha256": {
     "bootloader.bin": "0f65515a7e0dfe9cc4bc78c01bef79c941af1b2deb34d01ddd500ee3d465eedf",
     "partitions.bin": "38b4dda337a79ca3650ec294d4efbef6b573c80297319d34bfd5eaa1730cc366",
-    "tra-board-app.bin": "619c700714181d79870534b1b7e19e6ae292c8732ac23e74e9c7669e8734f9e9",
+    "tra-board-app.bin": "f836927ad3f6555df39794ff4f71fc5808845e283df442e5b124f59352dba110",
     "littlefs.bin": "48fb33bc5a7c57d934f2ded81848edb5baaffa010d3dd49f84949d79f6333132"
   },
   "capture_protocol": "CRC32-checked row RLE565 with ACK",
-  "build_verified": true
+  "build_verified": true,
+  "brightness_percent_range": [
+    10,
+    100
+  ]
 }

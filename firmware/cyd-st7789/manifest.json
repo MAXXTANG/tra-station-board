@@ -4,7 +4,7 @@
   "display": "ST7789",
   "chip": "esp32",
   "flash_bytes": 4194304,
-  "version": "0.3.2",
+  "version": "0.3.3",
   "refresh_seconds": 120,
   "hardware_verified": false,
   "offsets": {
@@ -16,7 +16,7 @@
   "sha256": {
     "bootloader.bin": "0f65515a7e0dfe9cc4bc78c01bef79c941af1b2deb34d01ddd500ee3d465eedf",
     "partitions.bin": "38b4dda337a79ca3650ec294d4efbef6b573c80297319d34bfd5eaa1730cc366",
-    "tra-board-app.bin": "578c023b4e7679dec15ea2241e25b26564a93072d4395ba0bd77a84031457749",
+    "tra-board-app.bin": "21fd2d4b7e9d0f6777018bb6b6f474fa4fef1450eb8651d87d2cf06c0759171a",
     "littlefs.bin": "48fb33bc5a7c57d934f2ded81848edb5baaffa010d3dd49f84949d79f6333132"
   },
   "display_config": {
@@ -51,7 +51,7 @@
   "build_verified": true,
   "app_flash_verified": true,
   "app_flash_verification": {
-    "version": "0.3.2",
+    "version": "0.3.3",
     "date": "2026-11-13",
     "app_hash_verified": true,
     "protected_regions_unchanged": [
@@ -67,6 +67,14 @@
     "station_preserved": true,
     "touch_calibration_preserved": true,
     "rotation_preserved": true,
-    "physical_ui_rechecked": false
-  }
+    "brightness": 100,
+    "backlight_duty_readback": 256,
+    "brightness_framebuffer_capture": true,
+    "physical_brightness_touch_verified": false,
+    "brightness_save_reboot_verified": false
+  },
+  "brightness_percent_range": [
+    10,
+    100
+  ]
 }

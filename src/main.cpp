@@ -21,8 +21,9 @@
 #include "cyd_touch.h"
 #include "cache_store.h"
 #include "capture_transport.h"
+#include "brightness.h"
 
-struct Config {String ssid,password,station="7210"; bool flip=false,ns=true,automatic=false,rotate180=false; String recent[6]; display::Calibration calibration;} cfg;
+struct Config {String ssid,password,station="7210"; bool flip=false,ns=true,automatic=false,rotate180=false; int brightness=backlight::DEFAULT_PERCENT; String recent[6]; display::Calibration calibration;} cfg;
 TFT_eSPI tft; BoardFrame frame(&tft);
 #ifdef TRA_BOARD_CYD
 CydTouch cydTouch;
@@ -40,10 +41,11 @@ uint8_t touchAddress=0;volatile bool touchIRQ=false;
 String apName,apPassword,csrf;
 uint32_t apStarted=0,rebootAt=0,lastAction=0;
 int direction=1,page=0;
-enum class View {Board,Recent,Regions,Stations,Switching,Calibrate,SetupDemo};
+enum class View {Board,Recent,Regions,Stations,Switching,Calibrate,SetupDemo,Brightness};
 bool diagnosticView=false;uint32_t diagnosticAt=0;
 View originalView=View::Board;int originalDirection=0,originalPage=0,originalPickerPage=0;String originalRegion;
 View view=View::Board;int pickerPage=0,lastRegionPage=0;String pickerRegion,switchingStation;
+int brightnessDraft=backlight::DEFAULT_PERCENT;String brightnessNotice;
 constexpr uint16_t BG=0x0841,WHITE=0xf7be,AMBER=0xf5ad,GRAY=0x8410,RED=0xf986;
 #if !defined(TRA_BOARD_CYD)
 struct PsramAllocator {void* allocate(size_t n){return heap_caps_malloc(n,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);}void deallocate(void*p){heap_caps_free(p);}void* reallocate(void*p,size_t n){return heap_caps_realloc(p,n,MALLOC_CAP_SPIRAM|MALLOC_CAP_8BIT);}};
@@ -77,6 +79,7 @@ void normalizeRecent(Config &value){
 bool saveConfig(const Config &value){
  DynamicJsonDocument d(1024);d["ssid"]=value.ssid;d["password"]=value.password;d["station"]=value.station;
  d["ns"]=value.ns;d["flip"]=value.flip;d["auto"]=value.automatic;d["rotation"]=value.rotate180?180:0;
+ d["brightness"]=backlight::clamp(value.brightness);
  JsonArray recent=d.createNestedArray("recent");for(const auto &id:value.recent)if(id.length())recent.add(id);
  if(value.calibration.valid){JsonArray cal=d.createNestedArray("calibration");for(float v:{value.calibration.a,value.calibration.b,value.calibration.c,value.calibration.d,value.calibration.e,value.calibration.f})cal.add(v);}
  d["interval"]=REFRESH_SECONDS;d["source"]="ods";String blob;serializeJson(d,blob);return prefs.putString("config",blob)>0;
@@ -86,6 +89,7 @@ void loadConfig(){
  cfg.ssid=d["ssid"] | "";cfg.password=d["password"] | "";cfg.station=d["station"] | "7210";
  cfg.flip=d["flip"] | false;cfg.ns=d["ns"] | true;cfg.automatic=d["auto"] | false;
  cfg.rotate180=(d["rotation"] | 0)==180;
+ cfg.brightness=backlight::clamp(d["brightness"] | backlight::DEFAULT_PERCENT);
  bool valid=false;for(auto&s:STATIONS)if(cfg.station==s.id)valid=true;if(!valid)cfg.station="7210";
  int recentIndex=0;for(JsonVariant id:d["recent"].as<JsonArray>())if(recentIndex<6)cfg.recent[recentIndex++]=id.as<String>();
  normalizeRecent(cfg);
@@ -270,7 +274,37 @@ std::vector<const Station*> pickerStations(){
  else for(const auto &s:STATIONS)if(pickerRegion==s.region)result.push_back(&s);
  return result;
 }
+void applyBrightness(int percent){ledcWrite(backlight::CHANNEL,backlight::duty(percent));}
+void drawBrightness(){
+ label("螢幕亮度",8,5,AMBER);frame.fillRoundRect(264,1,52,27,3,0x2124);label("返回",274,6);
+ label(String(brightnessDraft)+"%",144,board::CYD?52:35,AMBER,56);
+ int y=backlight::sliderY();frame.fillRoundRect(backlight::LEFT,y-3,backlight::RIGHT-backlight::LEFT,6,3,0x2945);
+ frame.fillRoundRect(backlight::LEFT,y-3,std::max(6,backlight::sliderX(brightnessDraft)-backlight::LEFT),6,3,AMBER);
+ frame.fillRoundRect(backlight::sliderX(brightnessDraft)-7,y-10,14,20,5,WHITE);
+ for(int i=0;i<5;i++){
+  bool active=brightnessDraft==backlight::PRESETS[i];int x=8+i*62;
+  frame.fillRoundRect(x,backlight::presetY(),56,backlight::presetHeight(),3,active?AMBER:0x2124);
+  label(String(backlight::PRESETS[i])+"%",x+8,backlight::presetY()+(backlight::presetHeight()-16)/2,active?BG:WHITE,48);
+ }
+ label(brightnessNotice.length()?brightnessNotice:"調整立即預覽，儲存後保留",16,board::PICKER_BOTTOM-20,GRAY,304);
+ frame.fillRect(0,board::PICKER_BOTTOM,320,30,0x10e3);label("儲存並返回",120,board::PICKER_TEXT_Y,AMBER);
+}
+void brightnessTap(int x,int y){
+ if(y<29){if(x>=264){applyBrightness(cfg.brightness);view=View::Recent;pickerPage=0;}return;}
+ if(y>=board::PICKER_BOTTOM){
+  Config nextCfg=cfg;nextCfg.brightness=brightnessDraft;
+  if(saveConfig(nextCfg)){cfg.brightness=brightnessDraft;view=View::Recent;pickerPage=0;}
+  else brightnessNotice="儲存失敗，請再試一次";
+  return;
+ }
+ int preset=backlight::presetAt(x,y);
+ if(preset>=0)brightnessDraft=backlight::PRESETS[preset];
+ else if(x>=10 && x<310 && std::abs(y-backlight::sliderY())<=14)brightnessDraft=backlight::fromSlider(x);
+ else return;
+ brightnessNotice="";applyBrightness(brightnessDraft);
+}
 void drawPicker(){
+ if(view==View::Brightness){drawBrightness();frame.pushSprite(0,0);return;}
  if(view==View::Switching){label("正在切換車站",64,43,AMBER);label(switchingStation,104,72);label("自動連線並載入表定時刻",48,106,GRAY);frame.pushSprite(0,0);return;}
  bool regions=view==View::Regions;auto counties=pickerRegions();auto stations=pickerStations();
  int count=regions?(int)counties.size():(int)stations.size(),pages=std::max(1,(count+7)/8);if(pickerPage>=pages)pickerPage=0;
@@ -283,15 +317,18 @@ void drawPicker(){
   frame.fillRoundRect(x,y,150,board::PICKER_STEP-3,3,selected?AMBER:0x2124);
   label(regions?counties[n]:String(stations[n]->name),x+7,y+3,selected?BG:WHITE,136);
  }
+ if(view==View::Recent){frame.fillRoundRect(6,backlight::recentY(),308,board::PICKER_STEP-3,3,0x2124);label("螢幕亮度 "+String(cfg.brightness)+"%",14,backlight::recentY()+3,AMBER,292);}
  frame.fillRect(0,board::PICKER_BOTTOM,320,30,0x10e3);label("上一頁",16,board::PICKER_TEXT_Y);label(String(pickerPage+1)+"/"+String(pages),144,board::PICKER_TEXT_Y,GRAY,40);label("下一頁",256,board::PICKER_TEXT_Y);frame.pushSprite(0,0);
 }
 void pickerTap(int x,int y){
+ if(view==View::Brightness){brightnessTap(x,y);return;}
  if(view==View::Switching)return;
  if(y<29){
   if(x>=264){if(view==View::Stations){view=View::Regions;pickerPage=lastRegionPage;}else if(view==View::Regions){view=View::Recent;pickerPage=0;}else view=View::Board;}
   else if(view==View::Recent && x>=208){view=View::Regions;pickerPage=0;}
   return;
  }
+ if(view==View::Recent && backlight::recentHit(x,y)){brightnessDraft=cfg.brightness;brightnessNotice="";view=View::Brightness;return;}
  bool regions=view==View::Regions;auto counties=pickerRegions();auto stations=pickerStations();
  int count=regions?(int)counties.size():(int)stations.size(),pages=std::max(1,(count+7)/8);
  if(y>=board::PICKER_BOTTOM){if(x<100)pickerPage=(pickerPage+pages-1)%pages;else if(x>=220)pickerPage=(pickerPage+1)%pages;return;}
@@ -364,12 +401,14 @@ void diagnosticNavigate(){
  if(portalActive){Serial.println("VIEW_ERROR setup_active");return;}
  View next;
  if(target=="board")next=View::Board;else if(target=="recent")next=View::Recent;
+ else if(target=="brightness")next=View::Brightness;
  else if(target=="regions")next=View::Regions;else if(target=="stations")next=View::Stations;
  else if(target=="switch_demo")next=View::Switching;else if(target=="setup_demo")next=View::SetupDemo;
  else if(target=="calibrate_demo" && board::CYD)next=View::Calibrate;
  else{Serial.println("VIEW_ERROR unknown_view");return;}
  if(!diagnosticView){originalView=view;originalDirection=direction;originalPage=page;originalPickerPage=pickerPage;originalRegion=pickerRegion;}
  diagnosticView=true;diagnosticAt=millis();view=next;
+ if(next==View::Brightness){brightnessDraft=cfg.brightness;brightnessNotice="";}
  page=std::max(0,std::min(99,request["page"] | 0));pickerPage=page;
  direction=std::max(0,std::min(1,request["direction"] | direction));
  if(next==View::Stations)pickerRegion=request["region"] | "宜蘭縣";
@@ -382,7 +421,8 @@ void diagnosticNavigate(){
 void diagnosticState(){
  StaticJsonDocument<512> state;state["station"]=cfg.station;state["direction"]=direction;state["page"]=page;
  state["rotation"]=cfg.rotate180?180:0;state["calibrated"]=cfg.calibration.valid;state["portal"]=portalActive;
- state["clock_valid"]=time(nullptr)>1735689600;state["wifi"]=(int)WiFi.status();state["diagnostic"]=diagnosticView;state["version"]="0.3.2";
+ state["clock_valid"]=time(nullptr)>1735689600;state["wifi"]=(int)WiFi.status();state["diagnostic"]=diagnosticView;state["version"]="0.3.3";
+ state["brightness"]=cfg.brightness;state["backlight_duty"]=ledcRead(backlight::CHANNEL);
  state["left_label"]=cfg.ns?"北上":"順行";state["right_label"]=cfg.ns?"南下":"逆行";
  state["left_direction"]=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
  state["rows"]=drawing.rows.size();state["updated"]=(int64_t)lastChecked;
@@ -392,9 +432,10 @@ void diagnosticState(){
 void setup(){
  if(!board::CYD){pinMode(15,OUTPUT);digitalWrite(15,HIGH);pinMode(14,INPUT_PULLUP);}
  pinMode(0,INPUT_PULLUP);
- Serial.begin(115200);Serial.setTimeout(300);delay(200);Serial.printf("TRA Board 0.3.2 / %s\n",board::NAME);
+ Serial.begin(115200);Serial.setTimeout(300);delay(200);Serial.printf("TRA Board 0.3.3 / %s\n",board::NAME);
  modelMutex=xSemaphoreCreateMutex();captureMutex=xSemaphoreCreateMutex();loadConfig();direction=cfg.ns?((cfg.station.toInt()>=6000?1:0)^(cfg.flip?1:0)):0;
- tft.init();tft.setRotation(display::landscapeRotation(cfg.rotate180));tft.fillScreen(BG);pinMode(board::BACKLIGHT,OUTPUT);digitalWrite(board::BACKLIGHT,HIGH);
+ tft.init();tft.setRotation(display::landscapeRotation(cfg.rotate180));tft.fillScreen(BG);
+ ledcSetup(backlight::CHANNEL,backlight::FREQUENCY,backlight::RESOLUTION);ledcAttachPin(board::BACKLIGHT,backlight::CHANNEL);applyBrightness(cfg.brightness);
  if(!frame.begin()){Serial.println("Framebuffer allocation failed");while(true)delay(1000);}
  cache.begin();rail::CacheMeta meta;if(cache.load(cfg.station,meta,trains)){scheduleDate=meta.date.c_str();lastChecked=meta.checked;cachedFromDisk=true;Serial.printf("Cache loaded rows=%u date=%s\n",(unsigned)trains.size(),meta.date.c_str());}
  setupTouch();
@@ -407,7 +448,7 @@ void setup(){
 void loop(){
  if(Serial.available()) {
   char cmd=Serial.read();
-  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d source=ods interval=%u version=0.3.2\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,(unsigned)REFRESH_SECONDS);
+  if(cmd=='?')Serial.printf("INFO station=%s wifi=%d touch=0x%02x psram=%u heap=%u portal=%d rotation=%d brightness=%d source=ods interval=%u version=0.3.3\n",cfg.station.c_str(),(int)WiFi.status(),touchAddress,ESP.getPsramSize(),ESP.getFreeHeap(),portalActive,cfg.rotate180?180:0,cfg.brightness,(unsigned)REFRESH_SECONDS);
   if(cmd=='V')diagnosticNavigate();
   if(cmd=='J')diagnosticState();
   if(cmd=='S'){

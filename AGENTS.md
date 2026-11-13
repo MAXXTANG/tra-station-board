@@ -15,3 +15,5 @@
 
 - CYD cache uses LittleFS without automatic formatting, CRC validation, station/date validation and atomic rename. Back up original Flash before initializing a new CYD cache unless the owner explicitly declines a backup. The LILYGO filesystem remains untouched.
 - Standard CYD uses GPIO14 for the LCD clock, not as a button. Use BOOT short press for paging and long press for setup on that profile.
+
+- Backlight brightness is adjusted from the recent-stations page, previews at 10-100 percent and persists only on Save. Preserve brightness with Wi-Fi/station/calibration changes; cancel restores the saved PWM level. Default old settings to 100 percent. Update both board previews when changing these controls.

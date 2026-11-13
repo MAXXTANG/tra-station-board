@@ -49,8 +49,28 @@ def render_picker():
  for i,name in enumerate(['礁溪','宜蘭','羅東','臺北','樹林','花蓮']):
   x=6+(i%2)*158;y=32+(i//2)*STEP;selected=i==0
   d.rounded_rectangle((x,y,x+149,y+STEP-4),radius=3,fill=colors['amber'] if selected else '#202620');text(name,x+7,y+3,'bg' if selected else 'white',136)
+ d.rounded_rectangle((6,32+3*STEP,313,32+4*STEP-4),radius=3,fill='#202620');text('螢幕亮度 100%',14,35+3*STEP,'amber')
  d.rectangle((0,H-30,319,H-1),fill='#102014');text('上一頁',16,H-23);text('1/1',144,H-23,'gray');text('下一頁',256,H-23)
  return im
+def render_brightness(percent=50):
+ im=Image.new('RGB',(320,H),colors['bg']);d=ImageDraw.Draw(im)
+ def text(t,x,y,c='white'):
+  for ch in t:
+   w=8 if ord(ch)<127 else 16;b=glyphs.get(ch,[0]*32)
+   for yy in range(16):
+    row=(b[yy*2]<<8)|b[yy*2+1]
+    for xx in range(w):
+     if row&(0x8000>>xx):d.point((x+xx,y+yy),colors.get(c,c))
+   x+=w
+ text('螢幕亮度',8,5,'amber');d.rounded_rectangle((264,1,315,27),radius=3,fill='#202620');text('返回',274,6)
+ text(str(percent)+'%',144,52 if args.cyd else 35,'amber');y=105 if args.cyd else 70;knob=24+(percent-10)*272//90
+ d.rounded_rectangle((24,y-3,295,y+2),radius=3,fill='#283d2d');d.rounded_rectangle((24,y-3,max(29,knob-1),y+2),radius=3,fill=colors['amber']);d.rounded_rectangle((knob-7,y-10,knob+6,y+9),radius=5,fill=colors['white'])
+ py=140 if args.cyd else 94;ph=38 if args.cyd else 26
+ for i,value in enumerate([10,25,50,75,100]):
+  x=8+i*62;active=percent==value;d.rounded_rectangle((x,py,x+55,py+ph-1),radius=3,fill=colors['amber'] if active else '#202620');text(str(value)+'%',x+8,py+(ph-16)//2,'bg' if active else 'white')
+ text('調整立即預覽，儲存後保留',16,H-50,'gray');d.rectangle((0,H-30,319,H-1),fill='#102014');text('儲存並返回',120,H-23,'amber')
+ return im
+render_brightness().resize((960,H*3),Image.Resampling.NEAREST).save(o/'brightness-preview.png')
 render_picker().resize((960,H*3),Image.Resampling.NEAREST).save(o/'station-picker-preview.png')
 north,south=render(),render(False)
 north.transpose(Image.Transpose.ROTATE_180).resize((960,H*3),Image.Resampling.NEAREST).save(o/'board-preview-inverted.png')
@@ -58,7 +78,7 @@ north.resize((960,H*3),Image.Resampling.NEAREST).save(o/'board-preview.png')
 south.resize((960,H*3),Image.Resampling.NEAREST).save(o/'board-preview-south.png')
 used=set('礁溪站北上南下時間開往車種樹林自強臺新七堵區間快更新蘇澳花蓮東表定每分示範資料・0123456789:/ ')
 compact={c:glyphs[c] for c in used if c in glyphs}
-html='''<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>臺鐵小看板 · 介面預覽</title><style>body{background:#111916;color:#f4f6ef;font:16px system-ui;margin:0;padding:6vh 5vw}main{max-width:960px;margin:auto}h1{font-size:32px}p{color:#b5c4bb;line-height:1.8}canvas{width:100%;image-rendering:pixelated;border-radius:8px;outline:10px solid #29362f;cursor:pointer;margin:30px 0}button{background:#e1b967;color:#17271d;border:0;border-radius:7px;padding:12px 26px;margin-right:12px;font:inherit}canvas.inverted{transform:rotate(180deg)}.tag{color:#e1b967;letter-spacing:3px}</style><main><span class="tag">TRA · DESKTOP DEPARTURES</span><h1>下一班，從礁溪出發。</h1><p>320 × 170 橫向介面，參考實體臺鐵資訊看板。站名與方向切換位於底部，時間在左下角。點列車區域可翻頁，每頁三班。</p><canvas id="board" width="320" height="170"></canvas><div><button onclick="show(true,0)">北上</button><button onclick="show(false,0)">南下</button><button onclick="nextPage()">下一頁</button><button onclick="openPicker()">切換車站</button><button id="rotate" onclick="rotateScreen()" aria-pressed="false">旋轉 180°</button></div><p>介面示意，車次與時間為示範資料。實機每 2 分鐘檢查臺鐵 OpenData，顯示表定時刻，無準點／誤點欄位；配網頁可選 246 個臺鐵車站。</p></main><script>'''
+html='''<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>臺鐵小看板 · 介面預覽</title><style>body{background:#111916;color:#f4f6ef;font:16px system-ui;margin:0;padding:6vh 5vw}main{max-width:960px;margin:auto}h1{font-size:32px}p{color:#b5c4bb;line-height:1.8}canvas{width:100%;image-rendering:pixelated;border-radius:8px;outline:10px solid #29362f;cursor:pointer;margin:30px 0}button{background:#e1b967;color:#17271d;border:0;border-radius:7px;padding:12px 26px;margin-right:12px;font:inherit}canvas.inverted{transform:rotate(180deg)}.tag{color:#e1b967;letter-spacing:3px}</style><main><span class="tag">TRA · DESKTOP DEPARTURES</span><h1>下一班，從礁溪出發。</h1><p>320 × 170 橫向介面，參考實體臺鐵資訊看板。站名與方向切換位於底部，時間在左下角。點列車區域可翻頁，每頁三班。</p><canvas id="board" width="320" height="170"></canvas><div><button onclick="show(true,0)">北上</button><button onclick="show(false,0)">南下</button><button onclick="nextPage()">下一頁</button><button onclick="openPicker()">切換車站</button><button id="rotate" onclick="rotateScreen()" aria-pressed="false">旋轉 180°</button></div><p>介面示意，車次與時間為示範資料。實機每 2 分鐘檢查臺鐵 OpenData，顯示表定時刻，無準點／誤點欄位；配網頁可選 246 個臺鐵車站。常用車站頁可開啟螢幕亮度，點選滑桿或百分比預覽，再儲存返回。</p></main><script>'''
 # Embed verified pixel previews; this artifact works without a server or external assets.
 import base64,io
 images=[]
@@ -68,21 +88,24 @@ for direction in [True,False]:
   b=io.BytesIO();render(direction,page).save(b,format='PNG');pages.append('data:image/png;base64,'+base64.b64encode(b.getvalue()).decode())
  images.append(pages)
 stations=json.loads((p/'data/stations.json').read_text())
-needed=set(''.join(x['name']+x['region']for x in stations)+'常用車站選擇縣市全部返回上一頁下一頁礁溪站0123456789/')
+needed=set(''.join(x['name']+x['region']for x in stations)+'常用車站選擇縣市全部返回上一頁下一頁礁溪站螢幕亮度調整立即預覽儲存後保留並，0123456789/%')
 font={c:glyphs[c] for c in needed if c in glyphs}
 html+='const HEIGHT='+str(H)+';const STEP='+str(STEP)+';const TABLE_BOTTOM='+str(TABLE_BOTTOM)+';const sources='+json.dumps(images)+';const stations='+json.dumps(stations,ensure_ascii=False)+';const font='+json.dumps(font,ensure_ascii=False)+';'
-html+=r'''let north=true,page=0,inverted=false,view='board',pickerPage=0,county='',chosen='7210';
+html+=r'''let north=true,page=0,inverted=false,view='board',pickerPage=0,county='',chosen='7210',brightness=100,brightnessDraft=100;
 const c=document.querySelector('canvas'),ctx=c.getContext('2d'),recent=['7210',...['宜蘭','羅東','臺北','樹林','花蓮'].map(name=>stations.find(s=>s.name===name)?.id)].filter(Boolean);
 const counties=[...new Set(stations.map(s=>s.region).filter(Boolean))];
 function text(s,x,y,color='#f7f7f2',width=320){const start=x;ctx.fillStyle=color;for(const ch of s){const w=ch.codePointAt(0)<127?8:16;if(x+w>start+width)break;const b=font[ch]||[];for(let yy=0;yy<16;yy++){const row=((b[yy*2]||0)<<8)|(b[yy*2+1]||0);for(let xx=0;xx<w;xx++)if(row&(0x8000>>xx))ctx.fillRect(x+xx,y+yy,1,1)}x+=w}}
 function button(x,y,w,h,s,active=false){ctx.fillStyle=active?'#f0b568':'#202620';ctx.fillRect(x,y,w,h);text(s,x+7,y+3,active?'#080c08':'#f7f7f2',w-14)}
 function options(){return view==='regions'?counties:(view==='recent'?recent.map(id=>stations.find(s=>s.id===id)).filter(Boolean):stations.filter(s=>s.region===county))}
-function drawPicker(){ctx.fillStyle='#080c08';ctx.fillRect(0,0,320,HEIGHT);const list=options(),pages=Math.max(1,Math.ceil(list.length/8));pickerPage=(pickerPage+pages)%pages;text(view==='recent'?'常用車站':view==='regions'?'選擇縣市':county,8,5,'#f0b568',192);if(view==='recent')button(208,1,52,27,'全部');button(264,1,52,27,'返回');list.slice(pickerPage*8,pickerPage*8+8).forEach((s,i)=>button(6+(i%2)*158,32+Math.floor(i/2)*STEP,150,STEP-3,view==='regions'?s:s.name,view!=='regions'&&s.id===chosen));ctx.fillStyle='#102014';ctx.fillRect(0,HEIGHT-30,320,30);text('上一頁',16,HEIGHT-23);text(`${pickerPage+1}/${pages}`,144,HEIGHT-23,'#83918a',40);text('下一頁',256,HEIGHT-23)}
+function drawPicker(){ctx.fillStyle='#080c08';ctx.fillRect(0,0,320,HEIGHT);const list=options(),pages=Math.max(1,Math.ceil(list.length/8));pickerPage=(pickerPage+pages)%pages;text(view==='recent'?'常用車站':view==='regions'?'選擇縣市':county,8,5,'#f0b568',192);if(view==='recent')button(208,1,52,27,'全部');button(264,1,52,27,'返回');list.slice(pickerPage*8,pickerPage*8+8).forEach((s,i)=>button(6+(i%2)*158,32+Math.floor(i/2)*STEP,150,STEP-3,view==='regions'?s:s.name,view!=='regions'&&s.id===chosen));if(view==='recent')button(6,32+3*STEP,308,STEP-3,'螢幕亮度 '+brightness+'%');ctx.fillStyle='#102014';ctx.fillRect(0,HEIGHT-30,320,30);text('上一頁',16,HEIGHT-23);text(`${pickerPage+1}/${pages}`,144,HEIGHT-23,'#83918a',40);text('下一頁',256,HEIGHT-23)}
+function previewBrightness(value){brightnessDraft=Math.max(10,Math.min(100,value));c.style.filter='brightness('+brightnessDraft/100+')';drawBrightness()}
+function drawBrightness(){ctx.fillStyle='#080c08';ctx.fillRect(0,0,320,HEIGHT);text('螢幕亮度',8,5,'#f0b568');button(264,1,52,27,'返回');text(brightnessDraft+'%',144,HEIGHT===240?52:35,'#f0b568');const sy=HEIGHT===240?105:70,k=24+Math.floor((brightnessDraft-10)*272/90);ctx.fillStyle='#283d2d';ctx.fillRect(24,sy-3,272,6);ctx.fillStyle='#f0b568';ctx.fillRect(24,sy-3,Math.max(6,k-24),6);ctx.fillStyle='#f7f7f2';ctx.fillRect(k-7,sy-10,14,20);[10,25,50,75,100].forEach((v,i)=>button(8+i*62,HEIGHT===240?140:94,56,HEIGHT===240?38:26,v+'%',v===brightnessDraft));text('調整立即預覽，儲存後保留',16,HEIGHT-50,'#83918a');ctx.fillStyle='#102014';ctx.fillRect(0,HEIGHT-30,320,30);text('儲存並返回',120,HEIGHT-23,'#f0b568')}
+function brightnessTap(x,y){if(y<29){if(x>=264){c.style.filter='brightness('+brightness/100+')';view='recent';drawPicker()}return}if(y>=HEIGHT-30){brightness=brightnessDraft;view='recent';drawPicker();return}const py=HEIGHT===240?140:94,ph=HEIGHT===240?38:26;if(y>=py&&y<py+ph){const i=Math.floor((x-8)/62);if(i>=0&&i<5&&x>=8+i*62&&x<64+i*62)previewBrightness([10,25,50,75,100][i]);return}if(x>=10&&x<310&&Math.abs(y-(HEIGHT===240?105:70))<=14)previewBrightness(10+Math.floor((Math.max(24,Math.min(296,x))-24)*90/272))}
 function show(n,p=0){north=n;page=p;view='board';const im=new Image;im.onload=()=>{if(view!=='board')return;ctx.drawImage(im,0,0);ctx.fillStyle='#102014';ctx.fillRect(74,HEIGHT-32,92,32);text((stations.find(s=>s.id===chosen)?.name||'礁溪')+'站',78,HEIGHT-23,'#f7f7f2',84)};im.src=sources[n?0:1][p]}
 function openPicker(){view='recent';pickerPage=0;drawPicker()}
-function nextPage(){if(view==='board')show(north,(page+1)%5);else{pickerPage++;drawPicker()}}
+function nextPage(){if(view==='brightness')return;if(view==='board')show(north,(page+1)%5);else{pickerPage++;drawPicker()}}
 function rotateScreen(){inverted=!inverted;c.classList.toggle('inverted',inverted);const b=document.querySelector('#rotate');b.setAttribute('aria-pressed',String(inverted));b.textContent=inverted?'恢復正常方向':'旋轉 180°'}
-c.onclick=e=>{const r=c.getBoundingClientRect();let x=Math.min(319,Math.floor((e.clientX-r.left)*320/r.width)),y=Math.min(HEIGHT-1,Math.floor((e.clientY-r.top)*HEIGHT/r.height));if(inverted){x=319-x;y=HEIGHT-1-y}if(view==='board'){if(y>=HEIGHT-32&&x>=74&&x<166)openPicker();else if(y>=HEIGHT-32&&x>=170)show(x<242,0);else if((y>=27&&y<TABLE_BOTTOM)||(y>=TABLE_BOTTOM&&y<HEIGHT-32&&x>=270))nextPage();return}if(y<29){if(x>=264){view=view==='stations'?'regions':view==='regions'?'recent':'board';pickerPage=0;if(view==='board')show(north,0);else drawPicker()}else if(view==='recent'&&x>=208){view='regions';pickerPage=0;drawPicker()}return}if(y>=HEIGHT-30){if(x<100)pickerPage--;else if(x>=220)pickerPage++;drawPicker();return}if(y<32||y>=32+STEP*4)return;const col=x<160?0:1,row=Math.floor((y-32)/STEP);if((y-32)%STEP>=STEP-3||x<6||(col===0&&x>=156)||(col===1&&(x<164||x>=314)))return;const list=options(),item=list[pickerPage*8+row*2+col];if(!item)return;if(view==='regions'){county=item;view='stations';pickerPage=0;drawPicker()}else{chosen=item.id;const i=recent.indexOf(chosen);if(i>=0)recent.splice(i,1);recent.unshift(chosen);recent.splice(6);show(north,0)}};
+c.onclick=e=>{const r=c.getBoundingClientRect();let x=Math.min(319,Math.floor((e.clientX-r.left)*320/r.width)),y=Math.min(HEIGHT-1,Math.floor((e.clientY-r.top)*HEIGHT/r.height));if(inverted){x=319-x;y=HEIGHT-1-y}if(view==='brightness'){brightnessTap(x,y);return}if(view==='board'){if(y>=HEIGHT-32&&x>=74&&x<166)openPicker();else if(y>=HEIGHT-32&&x>=170)show(x<242,0);else if((y>=27&&y<TABLE_BOTTOM)||(y>=TABLE_BOTTOM&&y<HEIGHT-32&&x>=270))nextPage();return}if(y<29){if(x>=264){view=view==='stations'?'regions':view==='regions'?'recent':'board';pickerPage=0;if(view==='board')show(north,0);else drawPicker()}else if(view==='recent'&&x>=208){view='regions';pickerPage=0;drawPicker()}return}if(view==='recent'&&x>=6&&x<314&&y>=32+3*STEP&&y<32+4*STEP-3){view='brightness';brightnessDraft=brightness;drawBrightness();return}if(y>=HEIGHT-30){if(x<100)pickerPage--;else if(x>=220)pickerPage++;drawPicker();return}if(y<32||y>=32+STEP*4)return;const col=x<160?0:1,row=Math.floor((y-32)/STEP);if((y-32)%STEP>=STEP-3||x<6||(col===0&&x>=156)||(col===1&&(x<164||x>=314)))return;const list=options(),item=list[pickerPage*8+row*2+col];if(!item)return;if(view==='regions'){county=item;view='stations';pickerPage=0;drawPicker()}else{chosen=item.id;const i=recent.indexOf(chosen);if(i>=0)recent.splice(i,1);recent.unshift(chosen);recent.splice(6);show(north,0)}};
 show(true,0);</script></html>'''
 if args.cyd:html=html.replace('height=\"170\"','height=\"240\"').replace('320 × 170','320 × 240').replace('每頁三班','每頁五班')
 (o/'board-preview.html').write_text(html)

@@ -1,0 +1,94 @@
+{
+  "version": "0.3.3",
+  "date": "2026-11-13T19:40:56",
+  "state_before_capture": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 180,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.3",
+    "brightness": 100,
+    "backlight_duty": 256,
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 8,
+    "updated": 1794570046
+  },
+  "state_after_capture": {
+    "station": "7210",
+    "direction": 1,
+    "page": 0,
+    "rotation": 180,
+    "calibrated": true,
+    "portal": false,
+    "clock_valid": true,
+    "wifi": 3,
+    "diagnostic": false,
+    "version": "0.3.3",
+    "brightness": 100,
+    "backlight_duty": 256,
+    "left_label": "北上",
+    "right_label": "南下",
+    "left_direction": 1,
+    "rows": 8,
+    "updated": 1794570046
+  },
+  "events": [
+    {
+      "time": "2026-11-13T19:40:19.327",
+      "message": "TRA Board 0.3.3 / ESP32-2432S028R"
+    },
+    {
+      "time": "2026-11-13T19:40:19.955",
+      "message": "Timetable cache: mounted"
+    },
+    {
+      "time": "2026-11-13T19:40:26.216",
+      "message": "檢查時刻表"
+    },
+    {
+      "time": "2026-11-13T19:40:27.560",
+      "message": "下載時刻表"
+    },
+    {
+      "time": "2026-11-13T19:40:46.886",
+      "message": "ODS compact trains=931 maxStops=90 maxValue=84"
+    },
+    {
+      "time": "2026-11-13T19:40:46.901",
+      "message": "ODS downloaded date=2026-11-13 rows=95 source=2026-11-12 16:17:30"
+    },
+    {
+      "time": "2026-11-13T19:40:47.163",
+      "message": "Cache save: ok"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "01-recent-stations-brightness.png",
+      "title": "常用車站亮度入口",
+      "kind": "device-framebuffer",
+      "firmware": "0.3.3",
+      "crc_rows": 240,
+      "retries": 0,
+      "sha256": "704dbc7281387b470c0add465b5eccddc91b2a5085d6522af2d2149ac9cfc543"
+    },
+    {
+      "file": "02-brightness-controls.png",
+      "title": "螢幕亮度設定",
+      "kind": "device-framebuffer",
+      "firmware": "0.3.3",
+      "crc_rows": 240,
+      "retries": 0,
+      "sha256": "a1a7a51ad0a1d091d29841011b4197fd7eb59af080fd06cdc269f4463fe7a2dd"
+    }
+  ],
+  "settings_restored": true,
+  "physical_touch_brightness_adjustment_verified": false
+}
