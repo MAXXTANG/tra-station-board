@@ -48,5 +48,25 @@
   "capture_protocol": "CRC32-checked row RLE565 with ACK",
   "hardware_profile_verified": true,
   "hardware_verified_version": "0.3.1",
-  "build_verified": true
+  "build_verified": true,
+  "app_flash_verified": true,
+  "app_flash_verification": {
+    "version": "0.3.2",
+    "date": "2026-11-13",
+    "app_hash_verified": true,
+    "protected_regions_unchanged": [
+      "nvs",
+      "littlefs",
+      "bootloader",
+      "partitions"
+    ],
+    "boot": true,
+    "wifi": true,
+    "ods": true,
+    "cache_save": true,
+    "station_preserved": true,
+    "touch_calibration_preserved": true,
+    "rotation_preserved": true,
+    "physical_ui_rechecked": false
+  }
 }
